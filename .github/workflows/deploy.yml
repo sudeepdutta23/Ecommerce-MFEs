@@ -1,0 +1,144 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      shell-path: ${{ steps.build.outputs.shell-path }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build with Turbo
+        id: build
+        run: |
+          npm run build
+          echo "shell-path=packages/shell/.next" >> $GITHUB_OUTPUT
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            packages/shell/.next/standalone
+            packages/shell/.next/static
+            packages/shell/public
+          retention-days: 1
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build static exports
+        run: |
+          # Build shell with static export
+          cd packages/shell
+          npm run build
+          cd ../..
+          
+          # Build other microfrontends
+          cd packages/home && npm run build && cd ../..
+          cd packages/product && npm run build && cd ../..
+          cd packages/cart && npm run build && cd ../..
+          cd packages/checkout && npm run build && cd ../..
+          cd packages/profile && npm run build && cd ../..
+          cd packages/admin && npm run build && cd ../..
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p deploy_dist
+          
+          # Copy shell build (or home as landing)
+          cp -r packages/home/dist/* deploy_dist/ 2>/dev/null || true
+          
+          # Create subdirectories for each microfrontend
+          mkdir -p deploy_dist/product && cp -r packages/product/dist/* deploy_dist/product/ 2>/dev/null || true
+          mkdir -p deploy_dist/cart && cp -r packages/cart/dist/* deploy_dist/cart/ 2>/dev/null || true
+          mkdir -p deploy_dist/checkout && cp -r packages/checkout/dist/* deploy_dist/checkout/ 2>/dev/null || true
+          mkdir -p deploy_dist/profile && cp -r packages/profile/dist/* deploy_dist/profile/ 2>/dev/null || true
+          mkdir -p deploy_dist/admin && cp -r packages/admin/dist/* deploy_dist/admin/ 2>/dev/null || true
+          
+          # Create index.html router if not exists
+          if [ ! -f deploy_dist/index.html ]; then
+            echo "<!DOCTYPE html><html><body><h1>E-commerce Platform</h1><ul><li><a href='/product'>Product</a></li><li><a href='/cart'>Cart</a></li><li><a href='/checkout'>Checkout</a></li><li><a href='/profile'>Profile</a></li><li><a href='/admin'>Admin</a></li></ul></body></html>" > deploy_dist/index.html
+          fi
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy_dist
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint --max-workers=1
+        continue-on-error: true

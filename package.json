@@ -1,0 +1,31 @@
+{
+    "name": "ecommerce-microfrontend",
+    "version": "1.0.0",
+    "private": true,
+    "description": "E-commerce Microfrontend Architecture using Module Federation",
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "preinstall": "npx only-allow npm",
+        "dev": "turbo run dev --parallel --filter=@ecommerce/shell --filter=@ecommerce/home --filter=@ecommerce/product --filter=@ecommerce/cart --filter=@ecommerce/checkout --filter=@ecommerce/profile --filter=@ecommerce/admin",
+        "dev:all": "turbo run dev --parallel",
+        "build": "turbo run build",
+        "dev:shell": "npm run dev -w @ecommerce/shell",
+        "dev:home": "npm run dev -w @ecommerce/home",
+        "dev:product": "npm run dev -w @ecommerce/product",
+        "dev:cart": "npm run dev -w @ecommerce/cart",
+        "dev:checkout": "npm run dev -w @ecommerce/checkout",
+        "dev:profile": "npm run dev -w @ecommerce/profile",
+        "dev:admin": "npm run dev -w @ecommerce/admin",
+        "lint": "turbo run lint",
+        "clean": "turbo run clean && rm -rf node_modules"
+    },
+    "devDependencies": {
+        "turbo": "^2.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "packageManager": "npm@10.0.0"
+}

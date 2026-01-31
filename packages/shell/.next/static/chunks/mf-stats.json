@@ -1,0 +1,312 @@
+{
+  "id": "shell",
+  "name": "shell",
+  "metaData": {
+    "name": "shell",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "1.0.0",
+      "buildName": "@ecommerce/shell"
+    },
+    "remoteEntry": {
+      "name": "static/chunks/remoteEntry.js",
+      "path": "",
+      "type": "window"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "zip": "",
+      "api": ""
+    },
+    "globalName": "shell",
+    "pluginVersion": "0.23.0",
+    "prefetchInterface": false,
+    "publicPath": "auto"
+  },
+  "shared": [
+    {
+      "singleton": true,
+      "requiredVersion": "^18.3.1",
+      "shareScope": "default",
+      "eager": true,
+      "name": "react-dom",
+      "version": "18.3.1",
+      "id": "shell:react-dom",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "static/chunks/main.js",
+            "static/chunks/react-refresh.js",
+            "static/chunks/remoteEntry.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": []
+    },
+    {
+      "singleton": true,
+      "requiredVersion": "^18.3.1",
+      "shareScope": "default",
+      "eager": true,
+      "name": "react",
+      "version": "18.3.1",
+      "id": "shell:react",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "static/chunks/main.js",
+            "static/chunks/react-refresh.js",
+            "static/chunks/remoteEntry.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      },
+      "usedIn": [
+        "./pages/profile",
+        "./pages/admin",
+        "./pages/cart",
+        "./pages/checkout",
+        "./pages/index",
+        "./pages/products"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "alias": "admin",
+      "consumingFederationContainerName": "shell",
+      "federationContainerName": "admin",
+      "moduleName": "AdminDashboard",
+      "usedIn": [
+        "pages/admin.tsx"
+      ],
+      "entry": "http://localhost:3006/_next/static/chunks/remoteEntry.js"
+    },
+    {
+      "alias": "profile",
+      "consumingFederationContainerName": "shell",
+      "federationContainerName": "profile",
+      "moduleName": "Profile",
+      "usedIn": [
+        "pages/profile.tsx"
+      ],
+      "entry": "http://localhost:3005/assets/remoteEntry.js"
+    },
+    {
+      "alias": "checkout",
+      "consumingFederationContainerName": "shell",
+      "federationContainerName": "checkout",
+      "moduleName": "CheckoutModule",
+      "usedIn": [
+        "pages/checkout.tsx"
+      ],
+      "entry": "http://localhost:3004/remoteEntry.js"
+    },
+    {
+      "alias": "cart",
+      "consumingFederationContainerName": "shell",
+      "federationContainerName": "cart",
+      "moduleName": "CartPage",
+      "usedIn": [
+        "pages/cart.tsx"
+      ],
+      "entry": "http://localhost:3003/assets/remoteEntry.js"
+    },
+    {
+      "alias": "product",
+      "consumingFederationContainerName": "shell",
+      "federationContainerName": "product",
+      "moduleName": "ProductList",
+      "usedIn": [
+        "pages/products.tsx"
+      ],
+      "entry": "http://localhost:3002/_next/static/chunks/remoteEntry.js"
+    },
+    {
+      "alias": "home",
+      "consumingFederationContainerName": "shell",
+      "federationContainerName": "home",
+      "moduleName": "Home",
+      "usedIn": [
+        "pages/index.tsx"
+      ],
+      "entry": "http://localhost:3001/_next/static/chunks/remoteEntry.js"
+    }
+  ],
+  "exposes": [
+    {
+      "path": "./pages-map",
+      "id": "shell:pages-map",
+      "name": "pages-map",
+      "requires": [],
+      "file": "../../node_modules/@module-federation/nextjs-mf/dist/src/loaders/nextPageMapLoader.js!/home/sudeepdutta/Desktop/PERSONAL_PROJECT/E-commerce/node_modules/@module-federation/nextjs-mf/dist/src/loaders/nextPageMapLoader.js",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages_map.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages-map-v2",
+      "id": "shell:pages-map-v2",
+      "name": "pages-map-v2",
+      "requires": [],
+      "file": "../../node_modules/@module-federation/nextjs-mf/dist/src/loaders/nextPageMapLoader.js?v2!/home/sudeepdutta/Desktop/PERSONAL_PROJECT/E-commerce/node_modules/@module-federation/nextjs-mf/dist/src/loaders/nextPageMapLoader.js",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages_map_v2.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages/admin",
+      "id": "shell:pages/admin",
+      "name": "pages/admin",
+      "requires": [
+        "react"
+      ],
+      "file": "pages/admin.tsx",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages__admin.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages/cart",
+      "id": "shell:pages/cart",
+      "name": "pages/cart",
+      "requires": [
+        "react"
+      ],
+      "file": "pages/cart.tsx",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages__cart.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages/checkout",
+      "id": "shell:pages/checkout",
+      "name": "pages/checkout",
+      "requires": [
+        "react"
+      ],
+      "file": "pages/checkout.tsx",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages__checkout.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages/index",
+      "id": "shell:pages/index",
+      "name": "pages/index",
+      "requires": [
+        "react"
+      ],
+      "file": "pages/index.tsx",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages__index.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages/products",
+      "id": "shell:pages/products",
+      "name": "pages/products",
+      "requires": [
+        "react"
+      ],
+      "file": "pages/products.tsx",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages__products.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "path": "./pages/profile",
+      "id": "shell:pages/profile",
+      "name": "pages/profile",
+      "requires": [
+        "react"
+      ],
+      "file": "pages/profile.tsx",
+      "assets": {
+        "js": {
+          "sync": [
+            "static/chunks/__federation_expose_pages__profile.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    }
+  ]
+}

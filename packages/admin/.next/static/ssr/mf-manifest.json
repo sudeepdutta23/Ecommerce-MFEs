@@ -1,0 +1,305 @@
+{
+  "id": "admin",
+  "name": "admin",
+  "metaData": {
+    "name": "admin",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "1.0.0",
+      "buildName": "@ecommerce/admin"
+    },
+    "remoteEntry": {
+      "name": "remoteEntry.js",
+      "path": "",
+      "type": "commonjs-module"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "zip": "",
+      "api": ""
+    },
+    "globalName": "admin",
+    "pluginVersion": "0.23.0",
+    "prefetchInterface": false,
+    "publicPath": "/_next/"
+  },
+  "shared": [
+    {
+      "id": "admin:next/dynamic",
+      "name": "next/dynamic",
+      "version": "14.2.0",
+      "singleton": true,
+      "requiredVersion": "^14.2.0",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/next-c143d15f524da1fa.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:next/head",
+      "name": "next/head",
+      "version": "14.2.0",
+      "singleton": true,
+      "requiredVersion": "^14.2.0",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/next-c143d15f524da1fa.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:next/image",
+      "name": "next/image",
+      "version": "14.2.0",
+      "singleton": true,
+      "requiredVersion": "^14.2.0",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/next-c143d15f524da1fa.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:next/link",
+      "name": "next/link",
+      "version": "14.2.0",
+      "singleton": true,
+      "requiredVersion": "^14.2.0",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/next-c143d15f524da1fa.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:next/router",
+      "name": "next/router",
+      "version": "14.2.0",
+      "singleton": true,
+      "requiredVersion": "^14.2.0",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/next-c143d15f524da1fa.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:next/script",
+      "name": "next/script",
+      "version": "14.2.0",
+      "singleton": true,
+      "requiredVersion": "^14.2.0",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/next-c143d15f524da1fa.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:react-dom",
+      "name": "react-dom",
+      "version": "18.3.1",
+      "singleton": true,
+      "requiredVersion": "^18.3.1",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/react-dom-54ad0686076eed67.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:react/jsx-dev-runtime",
+      "name": "react/jsx-dev-runtime",
+      "version": "18.3.1",
+      "singleton": true,
+      "requiredVersion": "^18.3.1",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/react-2f9d7548e370167b.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:react/jsx-runtime",
+      "name": "react/jsx-runtime",
+      "version": "18.3.1",
+      "singleton": true,
+      "requiredVersion": "^18.3.1",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/react-2f9d7548e370167b.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:react",
+      "name": "react",
+      "version": "18.3.1",
+      "singleton": true,
+      "requiredVersion": "^18.3.1",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/react-2f9d7548e370167b.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    },
+    {
+      "id": "admin:styled-jsx",
+      "name": "styled-jsx",
+      "version": "5.1.1",
+      "singleton": true,
+      "requiredVersion": "^5.1.1",
+      "assets": {
+        "js": {
+          "async": [],
+          "sync": [
+            "vendor-chunks/styled-jsx-b19b29d8a5729a91.js"
+          ]
+        },
+        "css": {
+          "async": [],
+          "sync": []
+        }
+      }
+    }
+  ],
+  "remotes": [],
+  "exposes": [
+    {
+      "id": "admin:AdminDashboard",
+      "name": "AdminDashboard",
+      "assets": {
+        "js": {
+          "sync": [
+            "__federation_expose_AdminDashboard-41de4d608f6732f5.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "path": "./AdminDashboard"
+    },
+    {
+      "id": "admin:pages-map",
+      "name": "pages-map",
+      "assets": {
+        "js": {
+          "sync": [],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "path": "./pages-map"
+    },
+    {
+      "id": "admin:pages-map-v2",
+      "name": "pages-map-v2",
+      "assets": {
+        "js": {
+          "sync": [],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "path": "./pages-map-v2"
+    },
+    {
+      "id": "admin:pages/index",
+      "name": "pages/index",
+      "assets": {
+        "js": {
+          "sync": [
+            "__federation_expose_pages__index-73ece782d04bf9dc.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "path": "./pages/index"
+    }
+  ]
+}
