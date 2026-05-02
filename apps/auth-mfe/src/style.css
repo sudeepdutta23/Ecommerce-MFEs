@@ -1,0 +1,163 @@
+.auth-mfe-container {
+  font-family: "Amazon Ember", Arial, sans-serif;
+  color: #0F1111;
+  background-color: #FFFFFF;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 14px;
+}
+
+.auth-logo-container {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.harbormart-logo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #F08804;
+}
+
+.harbormart-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0F1111;
+  letter-spacing: -0.5px;
+}
+
+.auth-card {
+  width: 350px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px 26px;
+  box-sizing: border-box;
+}
+
+.auth-title {
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.2;
+  margin-bottom: 15px;
+  margin-top: 0;
+}
+
+.auth-form {
+  margin-bottom: 22px;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  padding-bottom: 2px;
+  margin-bottom: 2px;
+}
+
+.form-input {
+  width: 100%;
+  height: 31px;
+  padding: 3px 7px;
+  font-size: 13px;
+  border: 1px solid #a6a6a6;
+  border-top-color: #949494;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.5), 0 1px 0 rgba(0,0,0,.07) inset;
+  box-sizing: border-box;
+  outline: 0;
+}
+
+.form-input:focus {
+  border-color: #e77600;
+  box-shadow: 0 0 3px 2px rgba(228,121,17,.5);
+}
+
+.auth-btn {
+  width: 100%;
+  background: #f0c14b;
+  border-color: #a88734 #9c7e31 #846a29;
+  color: #111;
+  background: linear-gradient(to bottom, #f7dfa5, #f0c14b);
+  border: 1px solid;
+  border-radius: 3px;
+  height: 29px;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset;
+  font-family: inherit;
+}
+
+.auth-btn:hover {
+  background: linear-gradient(to bottom, #f5d78e, #eeb933);
+}
+
+.auth-btn:focus {
+  outline: 0;
+  border-color: #e77600;
+  box-shadow: 0 0 3px 2px rgba(228,121,17,.5);
+}
+
+.auth-agreement {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 18px;
+  color: #0F1111;
+}
+
+.auth-agreement a, .auth-business a, .auth-footer-links a {
+  color: #0066c0;
+  text-decoration: none;
+}
+
+.auth-agreement a:hover, .auth-business a:hover, .auth-footer-links a:hover {
+  text-decoration: underline;
+  color: #c45500;
+}
+
+.auth-business {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid #e7e7e7;
+  font-size: 13px;
+}
+
+.auth-business p {
+  margin: 0 0 4px 0;
+}
+
+.auth-footer-divider {
+  width: 100%;
+  height: 44px;
+  background: linear-gradient(to bottom,rgba(0,0,0,.14),rgba(0,0,0,.03) 3px,transparent);
+  z-index: 0;
+  margin-top: 26px;
+}
+
+.auth-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.auth-footer-links {
+  display: flex;
+  gap: 20px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.auth-copyright {
+  font-size: 11px;
+  color: #555;
+  margin: 0;
+}

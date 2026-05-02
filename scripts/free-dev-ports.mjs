@@ -14,6 +14,7 @@ const portsByName = {
   cart: 3002,
   checkout: 3003,
   shell: 3100,
+  auth: 3005,
 }
 
 const selectedNames = process.argv

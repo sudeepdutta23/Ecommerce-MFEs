@@ -87,6 +87,33 @@ function CartMfeLoader({ retryKey }: { retryKey: number }) {
   return <LazyCartMfe />
 }
 
+function AuthMfeLoader({ retryKey }: { retryKey: number }) {
+  const LazyAuthMfe = React.useMemo(
+    () =>
+      React.lazy(async () => {
+        const module = await import('authMfe/AuthApp')
+        const mount = module.default as unknown as (el: HTMLElement) => (() => void)
+        return {
+          default: function VueAuth() {
+            const ref = React.useRef<HTMLDivElement>(null)
+            useEffect(() => {
+              let unmount: () => void
+              if (ref.current) {
+                unmount = mount(ref.current)
+              }
+              return () => {
+                if (unmount) unmount()
+              }
+            }, [])
+            return <div ref={ref} />
+          }
+        }
+      }),
+    [retryKey],
+  )
+  return <LazyAuthMfe />
+}
+
 function MfeFallback(name: string) {
   return function Fallback({ onRetry }: { onRetry?: () => void }) {
     return (
@@ -94,7 +121,7 @@ function MfeFallback(name: string) {
         <div className="mfe-offline__icon">⚡</div>
         <h3>{name} MFE</h3>
         <p>Start the {name.toLowerCase()}-mfe on its port to load this module.</p>
-        <code>npm run preview  (port {name === 'Products' ? '3001' : name === 'Cart' ? '3002' : name === 'Home' ? '3004' : '3003'})</code>
+        <code>npm run preview  (port {name === 'Products' ? '3001' : name === 'Cart' ? '3002' : name === 'Home' ? '3004' : name === 'Auth' ? '3005' : '3003'})</code>
         {onRetry && (
           <button className="btn-primary" onClick={onRetry} style={{ marginTop: '1rem' }}>
             Retry Loading
@@ -245,13 +272,13 @@ function Navbar({ cartCount }: { cartCount: number }) {
               <span className="navbar__text-bottom">Your area</span>
             </span>
           </button>
-          <button className="navbar__text-btn" aria-label="Account" title="Account">
+          <Link to="/auth" className="navbar__text-btn" aria-label="Account" title="Account">
             <User size={18} />
             <span className="navbar__text-stack">
               <span className="navbar__text-top">Hello, sign in</span>
               <span className="navbar__text-bottom">Account & Lists</span>
             </span>
-          </button>
+          </Link>
           <Link to="/cart" className="navbar__cart-btn" aria-label={`Cart, ${cartCount} items`}>
             <ShoppingCart size={20} />
             <span className="navbar__cart-label">Cart</span>
@@ -331,6 +358,7 @@ function AppInner() {
   const [productsRetryKey, setProductsRetryKey] = useState(0)
   const [homeRetryKey, setHomeRetryKey] = useState(0)
   const [cartRetryKey, setCartRetryKey] = useState(0)
+  const [authRetryKey, setAuthRetryKey] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -340,9 +368,14 @@ function AppInner() {
     const offCheckout = on('ecom:checkout:start', () => {
       navigate('/checkout')
     })
+    const handleAuthSuccess = () => {
+      navigate('/')
+    }
+    window.addEventListener('auth:login_success', handleAuthSuccess)
     return () => {
       offCart()
       offCheckout()
+      window.removeEventListener('auth:login_success', handleAuthSuccess)
     }
   }, [navigate])
 
@@ -386,6 +419,18 @@ function AppInner() {
                   onRetry={() => setCartRetryKey(k => k + 1)}
                 >
                   <CartMfeLoader retryKey={cartRetryKey} />
+                </MfeErrorBoundary>
+              }
+            />
+            <Route
+              path="/auth"
+              element={
+                <MfeErrorBoundary
+                  name="Auth"
+                  retryKey={authRetryKey}
+                  onRetry={() => setAuthRetryKey(k => k + 1)}
+                >
+                  <AuthMfeLoader retryKey={authRetryKey} />
                 </MfeErrorBoundary>
               }
             />
