@@ -24,6 +24,7 @@ export default defineConfig({
     server: {
         port: 3003,
         cors: true,
+        middlewareMode: false,
     },
     preview: {
         port: 3003,

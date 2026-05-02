@@ -8,8 +8,9 @@
     ],
     "scripts": {
         "preinstall": "npx only-allow npm",
-        "dev": "turbo run dev --parallel --filter=@ecommerce/shell --filter=@ecommerce/home --filter=@ecommerce/product --filter=@ecommerce/cart --filter=@ecommerce/checkout --filter=@ecommerce/profile --filter=@ecommerce/admin",
-        "dev:all": "turbo run dev --parallel",
+        "kill:ports": "bash ./scripts/cleanup-ports.sh",
+        "dev": "npm run kill:ports && turbo run dev --parallel --filter=@ecommerce/shell --filter=@ecommerce/home --filter=@ecommerce/product --filter=@ecommerce/cart --filter=@ecommerce/checkout --filter=@ecommerce/profile --filter=@ecommerce/admin",
+        "dev:all": "npm run kill:ports && turbo run dev --parallel",
         "build": "turbo run build",
         "dev:shell": "npm run dev -w @ecommerce/shell",
         "dev:home": "npm run dev -w @ecommerce/home",

@@ -4,8 +4,8 @@ const NextFederationPlugin = require('@module-federation/nextjs-mf');
 const remotes = (isServer) => {
   const location = isServer ? 'ssr' : 'chunks';
   return {
-    home: `home@http://localhost:3001/_next/static/${location}/remoteEntry.js`,
-    product: `product@http://localhost:3002/_next/static/${location}/remoteEntry.js`,
+    home: `home@http://localhost:3001/assets/remoteEntry.js`,
+    product: `product@http://localhost:3002/assets/remoteEntry.js`,
     cart: `cart@http://localhost:3003/assets/remoteEntry.js`,
     checkout: `checkout@http://localhost:3004/remoteEntry.js`,
     profile: `profile@http://localhost:3005/assets/remoteEntry.js`,
@@ -16,6 +16,8 @@ const remotes = (isServer) => {
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@ecommerce/shared'],
+  output: 'standalone',
+  swcMinify: true,
   webpack(config, options) {
     const { isServer } = options;
     
