@@ -111,12 +111,12 @@ function CheckoutMfeLoader({ retryKey }: { retryKey: number }) {
         return {
           default: function CheckoutRemote() {
             const ref = React.useRef<HTMLDivElement>(null);
-            
+
             useEffect(() => {
               if (!ref.current) return;
-              
+
               ref.current.innerHTML = '';
-              
+
               const iframe = document.createElement('iframe');
               iframe.src = 'http://localhost:3003/';
               iframe.style.width = '100%';
@@ -124,23 +124,23 @@ function CheckoutMfeLoader({ retryKey }: { retryKey: number }) {
               iframe.style.border = 'none';
               iframe.style.background = 'transparent';
               iframe.setAttribute('title', 'Checkout');
-              
+
               ref.current.appendChild(iframe);
-              
+
               return () => {
                 if (ref.current) {
                   ref.current.innerHTML = '';
                 }
               };
             }, []);
-            
+
             return <div ref={ref} style={{ width: '100%' }} />;
           }
         }
       }),
     [retryKey],
   )
-  
+
   return (
     <React.Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', minHeight: '600px' }}>Loading checkout...</div>}>
       <LazyCheckoutMfe />
@@ -172,7 +172,7 @@ function Navbar({ cartCount }: { cartCount: number }) {
   useEffect(() => setMobileOpen(false), [location])
 
   const navLinks = [
-    { to: '/', label: 'Products' },
+    { to: '/products', label: 'Products' },
     { to: '/cart', label: 'Cart' },
     { to: '/checkout', label: 'Checkout' },
   ]
@@ -196,14 +196,16 @@ function Navbar({ cartCount }: { cartCount: number }) {
         </Link>
 
         <div className="navbar__search" role="search">
-          <select className="navbar__search-select" aria-label="Search category" defaultValue="all">
+          <label htmlFor="nav-category-select" className="sr-only">Search category</label>
+          <select id="nav-category-select" className="navbar__search-select" aria-label="Search category" defaultValue="all">
             <option value="all">All</option>
             <option value="electronics">Electronics</option>
             <option value="wearables">Wearables</option>
             <option value="audio">Audio</option>
           </select>
-          <input className="navbar__search-input" type="search" aria-label="Search products" placeholder="Search HarborMart" />
-          <button className="navbar__search-submit" aria-label="Search">
+          <label htmlFor="nav-search-input" className="sr-only">Search products</label>
+          <input id="nav-search-input" className="navbar__search-input" type="search" aria-label="Search products" placeholder="Search HarborMart" />
+          <button className="navbar__search-submit" aria-label="Search HarborMart">
             <Search size={22} />
           </button>
         </div>
@@ -318,12 +320,13 @@ function AppInner() {
 
   return (
     <>
+      <a href="#main-content" className="skip-link sr-only focusable" style={{ position: 'absolute', top: 0, left: 0, zIndex: 9999, padding: '1rem', background: 'var(--color-primary)', color: '#fff' }} onFocus={(e) => { e.currentTarget.classList.remove('sr-only'); e.currentTarget.style.position = 'absolute' }} onBlur={(e) => e.currentTarget.classList.add('sr-only')}>Skip to main content</a>
       <Navbar cartCount={cartCount} />
-      <main className="mfe-container" id="main-content">
+      <main className="mfe-container" id="main-content" role="main">
         <React.Suspense fallback={<MfeLoadingSpinner />}>
           <Routes>
             <Route
-              path="/"
+              path="/products"
               element={
                 <MfeErrorBoundary
                   name="Products"

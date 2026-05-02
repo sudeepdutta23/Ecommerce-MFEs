@@ -34,7 +34,7 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
             <div className="toast__name">{toast.product.name}</div>
             <div className="toast__sub">Added to cart!</div>
           </div>
-          <button onClick={() => onRemove(toast.id)} aria-label="Dismiss" style={{ background:'none',border:'none',color:'var(--color-text-muted)',cursor:'pointer' }}>✕</button>
+          <button onClick={() => onRemove(toast.id)} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>✕</button>
         </div>
       ))}
     </div>
@@ -46,7 +46,15 @@ function ProductModal({ product, onClose, onAddToCart }: { product: Product; onC
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+
+    // Disable background scrolling
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = originalOverflow
+    }
   }, [onClose])
 
   const discount = product.originalPrice > product.price
@@ -65,22 +73,22 @@ function ProductModal({ product, onClose, onAddToCart }: { product: Product; onC
             <span className="product-modal__brand">{product.brand}</span>
             <h3 className="product-modal__name">{product.name}</h3>
             <div className="star-rating">
-              {[1,2,3,4,5].map(i => (
+              {[1, 2, 3, 4, 5].map(i => (
                 <Star key={i} size={14} fill={i <= Math.floor(product.rating) ? '#FFB347' : 'transparent'} color={i <= Math.floor(product.rating) ? '#FFB347' : '#5C5C7A'} />
               ))}
               <span className="star-rating__value">{product.rating}</span>
-              <span style={{fontSize:'12px',color:'var(--color-text-muted)',marginLeft:'6px'}}>({product.reviewCount.toLocaleString()})</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginLeft: '6px' }}>({product.reviewCount.toLocaleString()})</span>
             </div>
             <p className="product-modal__description">{product.description}</p>
             <div className="product-modal__tags">
               {product.tags.map(t => <span key={t} className="product-modal__tag">#{t}</span>)}
             </div>
-            <div style={{display:'flex',alignItems:'baseline',gap:'12px'}}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
               <span className="product-modal__price">${product.price.toFixed(2)}</span>
-              {discount > 0 && <span style={{color:'var(--color-text-muted)',textDecoration:'line-through',fontSize:'16px'}}>${product.originalPrice.toFixed(2)}</span>}
-              {discount > 0 && <span style={{background:'#cc0c39',color:'white',padding:'2px 8px',borderRadius:'6px',fontSize:'12px',fontWeight:'700'}}>-{discount}%</span>}
+              {discount > 0 && <span style={{ color: 'var(--color-text-muted)', textDecoration: 'line-through', fontSize: '16px' }}>${product.originalPrice.toFixed(2)}</span>}
+              {discount > 0 && <span style={{ background: '#cc0c39', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>-{discount}%</span>}
             </div>
-            <p style={{fontSize:'13px',color:product.stock <= 5 ? '#b12704' : 'var(--color-success)',fontWeight:'600'}}>
+            <p style={{ fontSize: '13px', color: product.stock <= 5 ? '#b12704' : 'var(--color-success)', fontWeight: '600' }}>
               {product.stock <= 5 ? `⚠ Only ${product.stock} left in stock!` : `✓ In Stock (${product.stock} units)`}
             </p>
             <button className="product-modal__add-btn" onClick={() => { onAddToCart(product); onClose() }} aria-label={`Add ${product.name} to cart`}>
@@ -134,7 +142,7 @@ function ProductsContent() {
     <div className="products-page">
       {/* Hero */}
       <section className="products-hero" aria-label="Products hero">
-        <div className="products-hero__eyebrow">HarborMart Picks</div>
+        {/* <div className="products-hero__eyebrow">HarborMart Picks</div> */}
         <h1>Great prices on tech and everyday essentials</h1>
         <p className="products-hero__sub">Shop new arrivals, top-rated gear, and limited-time deals</p>
       </section>
@@ -142,6 +150,7 @@ function ProductsContent() {
       {/* Toolbar */}
       <div className="products-toolbar" role="search">
         <div className="search-box">
+          <label htmlFor="product-search" className="sr-only">Search products</label>
           <Search size={16} className="search-box__icon" aria-hidden />
           <input
             id="product-search"
@@ -153,6 +162,7 @@ function ProductsContent() {
             aria-label="Search products"
           />
         </div>
+        <label htmlFor="product-sort" className="sr-only">Sort products</label>
         <select
           id="product-sort"
           className="toolbar-select"
@@ -186,7 +196,7 @@ function ProductsContent() {
         {(categories || []).map(cat => (
           <button
             key={cat}
-            id={`cat-${cat.toLowerCase().replace(/\s/g,'-')}`}
+            id={`cat-${cat.toLowerCase().replace(/\s/g, '-')}`}
             className={`category-pill ${filters.category === cat ? 'category-pill--active' : ''}`}
             onClick={() => dispatch(setCategory(cat))}
             aria-pressed={filters.category === cat}
@@ -204,7 +214,7 @@ function ProductsContent() {
           {(filters.search || (filters.category && filters.category !== 'All')) && (
             <button
               onClick={() => { dispatch(setSearch('')); dispatch(setCategory('All')) }}
-              style={{ background:'none', border:'none', color:'var(--color-text-muted)', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px', fontSize:'13px' }}
+              style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
               aria-label="Clear filters"
             >
               <X size={14} /> Clear filters
@@ -218,24 +228,24 @@ function ProductsContent() {
         {loading
           ? Array.from({ length: 8 }, (_, i) => <ProductSkeleton key={i} />)
           : products?.length === 0
-          ? (
-            <div className="empty-state" style={{ gridColumn: '1/-1' }}>
-              <div className="empty-state__icon">🔍</div>
-              <h3>No products found</h3>
-              <p>Try adjusting your filters or search terms</p>
-              <button onClick={() => { dispatch(setSearch('')); dispatch(setCategory('All')) }}>
-                Reset Filters
-              </button>
-            </div>
-          )
-          : products?.map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={handleAddToCart}
-              onViewDetail={setSelectedProductLocal}
-            />
-          ))
+            ? (
+              <div className="empty-state" style={{ gridColumn: '1/-1' }}>
+                <div className="empty-state__icon">🔍</div>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or search terms</p>
+                <button onClick={() => { dispatch(setSearch('')); dispatch(setCategory('All')) }}>
+                  Reset Filters
+                </button>
+              </div>
+            )
+            : products?.map(product => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                onViewDetail={setSelectedProductLocal}
+              />
+            ))
         }
       </section>
 
