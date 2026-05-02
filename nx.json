@@ -10,7 +10,10 @@
       "default",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)",
       "!{projectRoot}/.eslintrc.json",
-      "!{projectRoot}/eslint.config.*"
+      "!{projectRoot}/eslint.config.*",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/src/test-setup.[jt]s"
     ]
   },
   "plugins": [
@@ -60,5 +63,22 @@
     }
   },
   "defaultBase": "main",
-  "analytics": false
+  "analytics": false,
+  "generators": {
+    "@nx/react": {
+      "application": {
+        "babel": true,
+        "style": "css",
+        "linter": "none",
+        "bundler": "vite"
+      },
+      "component": {
+        "style": "css"
+      },
+      "library": {
+        "style": "css",
+        "linter": "none"
+      }
+    }
+  }
 }

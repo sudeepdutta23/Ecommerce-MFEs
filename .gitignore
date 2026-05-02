@@ -183,3 +183,6 @@ docker-compose.override.yml
 !.vscode/settings.json
 !.vscode/extensions.json
 !.gitkeep
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*

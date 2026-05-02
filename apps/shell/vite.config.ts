@@ -10,6 +10,7 @@ export default defineConfig({
     federation({
       name: 'shell',
       remotes: {
+        homeMfe: 'http://localhost:3004/assets/remoteEntry.js',
         productsMfe: 'http://localhost:3001/assets/remoteEntry.js',
         cartMfe: 'http://localhost:3002/assets/remoteEntry.js',
         checkoutMfe: 'http://localhost:3003/remoteEntry.js',

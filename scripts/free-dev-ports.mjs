@@ -9,6 +9,7 @@ const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const force = process.env.FREE_DEV_PORTS_FORCE === '1' || process.argv.includes('--force')
 
 const portsByName = {
+  home: 3004,
   products: 3001,
   cart: 3002,
   checkout: 3003,

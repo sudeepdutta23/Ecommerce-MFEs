@@ -33,6 +33,33 @@ function ProductsMfeLoader({ retryKey }: { retryKey: number }) {
   return <LazyProductsMfe />
 }
 
+function HomeMfeLoader({ retryKey }: { retryKey: number }) {
+  const LazyHomeMfe = React.useMemo(
+    () =>
+      React.lazy(async () => {
+        const module = await import('homeMfe/App')
+        const mount = module.default as unknown as (el: HTMLElement) => (() => void)
+        return {
+          default: function HomeRemote() {
+            const ref = React.useRef<HTMLDivElement>(null)
+            useEffect(() => {
+              let unmount: () => void
+              if (ref.current) {
+                unmount = mount(ref.current)
+              }
+              return () => {
+                if (unmount) unmount()
+              }
+            }, [])
+            return <div ref={ref} />
+          }
+        }
+      }),
+    [retryKey],
+  )
+  return <LazyHomeMfe />
+}
+
 function CartMfeLoader({ retryKey }: { retryKey: number }) {
   const LazyCartMfe = React.useMemo(
     () =>
@@ -67,7 +94,7 @@ function MfeFallback(name: string) {
         <div className="mfe-offline__icon">⚡</div>
         <h3>{name} MFE</h3>
         <p>Start the {name.toLowerCase()}-mfe on its port to load this module.</p>
-        <code>npm run preview  (port {name === 'Products' ? '3001' : '3002'})</code>
+        <code>npm run preview  (port {name === 'Products' ? '3001' : name === 'Cart' ? '3002' : name === 'Home' ? '3004' : '3003'})</code>
         {onRetry && (
           <button className="btn-primary" onClick={onRetry} style={{ marginTop: '1rem' }}>
             Retry Loading
@@ -245,10 +272,10 @@ function Navbar({ cartCount }: { cartCount: number }) {
 
       <div className="navbar__sub" aria-label="Browse categories">
         <div className="navbar__sub-inner">
-          <button className="navbar__sub-link navbar__sub-link--menu" type="button">
+          <Link to="/" className={`navbar__sub-link navbar__sub-link--menu ${location.pathname === '/' ? 'navbar__sub-link--active' : ''}`}>
             <Menu size={16} />
             <span>All</span>
-          </button>
+          </Link>
           {navLinks.map(link => (
             <Link
               key={link.to}
@@ -302,6 +329,7 @@ function Footer() {
 function AppInner() {
   const [cartCount, setCartCount] = useState(0)
   const [productsRetryKey, setProductsRetryKey] = useState(0)
+  const [homeRetryKey, setHomeRetryKey] = useState(0)
   const [cartRetryKey, setCartRetryKey] = useState(0)
   const navigate = useNavigate()
 
@@ -325,6 +353,18 @@ function AppInner() {
       <main className="mfe-container" id="main-content" role="main">
         <React.Suspense fallback={<MfeLoadingSpinner />}>
           <Routes>
+            <Route
+              path="/"
+              element={
+                <MfeErrorBoundary
+                  name="Home"
+                  retryKey={homeRetryKey}
+                  onRetry={() => setHomeRetryKey(k => k + 1)}
+                >
+                  <HomeMfeLoader retryKey={homeRetryKey} />
+                </MfeErrorBoundary>
+              }
+            />
             <Route
               path="/products"
               element={

@@ -1,0 +1,361 @@
+/* Amazon-style Home Layout */
+:root {
+  --amz-bg: #E3E6E6;
+  --amz-link: #007185;
+  --amz-link-hover: #C40000;
+  --amz-card-bg: #FFFFFF;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: var(--amz-bg);
+}
+
+.amz-home {
+  font-family: "Amazon Ember", Arial, sans-serif;
+  color: #0F1111;
+  background-color: var(--amz-bg);
+  min-height: 100vh;
+  padding-bottom: 40px;
+  width: 100%;
+}
+
+.amz-hero {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: var(--amz-bg);
+}
+
+.amz-hero__slider {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease-in-out;
+}
+
+.amz-hero__slide {
+  min-width: 100%;
+  height: 100%;
+}
+
+.amz-hero__bg {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center top;
+  /* fade out at the bottom */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+}
+
+.amz-hero__arrow {
+  position: absolute;
+  top: 120px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 2px solid transparent;
+  font-size: 50px;
+  color: #333;
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+}
+
+.amz-hero__arrow:hover {
+  /* removed border */
+}
+
+.amz-hero__arrow:focus {
+  outline: none;
+  /* removed border */
+}
+
+.amz-hero__arrow--left {
+  left: 10px;
+}
+
+.amz-hero__arrow--right {
+  right: 10px;
+}
+
+.amz-main-content {
+  max-width: 1500px;
+  margin: 0 auto;
+  position: relative;
+  top: -150px; /* Overlap hero */
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Grid for 4 cards */
+.amz-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .amz-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 900px) {
+  .amz-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .amz-grid { grid-template-columns: 1fr; }
+  .amz-main-content { top: 0; padding-top: 20px; }
+}
+
+/* Cards */
+.amz-card {
+  background: var(--amz-card-bg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 420px;
+  box-sizing: border-box;
+}
+
+.amz-card h2 {
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  line-height: 27px;
+  height: 54px; /* Fix height for alignment */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.amz-card__link {
+  color: var(--amz-link);
+  text-decoration: none;
+  font-size: 13px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.amz-card__link:hover {
+  color: var(--amz-link-hover);
+  text-decoration: underline;
+}
+
+/* Quad Card inner */
+.amz-card__quad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.amz-card__quad-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.amz-card__quad-item img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  margin-bottom: 4px;
+}
+
+.amz-card__quad-item span {
+  font-size: 12px;
+  color: #0F1111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Single Card inner */
+.amz-card__single {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.amz-card__single img {
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+}
+
+/* Button */
+.amz-btn {
+  background: #FFD814;
+  border: 1px solid #FCD200;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(15,17,17,.15);
+}
+
+.amz-btn:hover {
+  background: #F7CA00;
+}
+
+.amz-card--sign-in {
+  height: 150px;
+}
+
+/* Carousels */
+.amz-carousel-container {
+  background: var(--amz-card-bg);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.amz-carousel__header {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.amz-carousel__header h2 {
+  font-size: 21px;
+  margin: 0;
+}
+
+.amz-carousel__header a {
+  color: var(--amz-link);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.amz-carousel__header a:hover {
+  color: var(--amz-link-hover);
+  text-decoration: underline;
+}
+
+.amz-carousel__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.amz-carousel__scroll {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.amz-carousel__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.amz-carousel__item {
+  flex: 0 0 auto;
+}
+
+.amz-carousel__item img {
+  height: 200px;
+  width: auto;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.amz-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #d5d9d9;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  padding: 25px 10px;
+  z-index: 10;
+  transition: all 0.2s;
+}
+
+.amz-carousel__arrow:hover {
+  background: #f3f3f3;
+}
+
+.amz-carousel__arrow:focus {
+  outline: none;
+}
+
+.amz-carousel__arrow--left {
+  left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.amz-carousel__arrow--right {
+  right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Banner Ad */
+.amz-banner-ad {
+  background: var(--amz-card-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+.amz-banner-ad img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Bottom Sign In */
+.amz-bottom-signin {
+  margin-top: 40px;
+  border-top: 1px solid #DDD;
+  border-bottom: 1px solid #DDD;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #FFF;
+}
+
+.amz-bottom-signin p {
+  font-size: 13px;
+  margin: 0 0 10px 0;
+}
+
+.amz-bottom-signin .amz-btn {
+  width: 250px;
+  padding: 6px 0;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.amz-bottom-signin__new {
+  font-size: 11px !important;
+}
+
+.amz-bottom-signin__new a {
+  color: var(--amz-link);
+  text-decoration: none;
+}
