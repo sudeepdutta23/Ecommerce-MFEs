@@ -1,0 +1,9 @@
+{
+  "name": "shell",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/shell/src",
+  "projectType": "application",
+  "tags": ["scope:shell", "type:app", "framework:react"],
+  "implicitDependencies": ["products-mfe", "cart-mfe"],
+  "targets": {}
+}

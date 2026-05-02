@@ -1,32 +1,52 @@
 {
-    "name": "ecommerce-microfrontend",
-    "version": "1.0.0",
-    "private": true,
-    "description": "E-commerce Microfrontend Architecture using Module Federation",
-    "workspaces": [
-        "packages/*"
-    ],
-    "scripts": {
-        "preinstall": "npx only-allow npm",
-        "kill:ports": "bash ./scripts/cleanup-ports.sh",
-        "dev": "npm run kill:ports && turbo run dev --parallel --filter=@ecommerce/shell --filter=@ecommerce/home --filter=@ecommerce/product --filter=@ecommerce/cart --filter=@ecommerce/checkout --filter=@ecommerce/profile --filter=@ecommerce/admin",
-        "dev:all": "npm run kill:ports && turbo run dev --parallel",
-        "build": "turbo run build",
-        "dev:shell": "npm run dev -w @ecommerce/shell",
-        "dev:home": "npm run dev -w @ecommerce/home",
-        "dev:product": "npm run dev -w @ecommerce/product",
-        "dev:cart": "npm run dev -w @ecommerce/cart",
-        "dev:checkout": "npm run dev -w @ecommerce/checkout",
-        "dev:profile": "npm run dev -w @ecommerce/profile",
-        "dev:admin": "npm run dev -w @ecommerce/admin",
-        "lint": "turbo run lint",
-        "clean": "turbo run clean && rm -rf node_modules"
-    },
-    "devDependencies": {
-        "turbo": "^2.0.0"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "packageManager": "npm@10.0.0"
+  "name": "ecommerce-microfrontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ecommerce Microfrontend — Nx Monorepo · React · Vue · Next.js · Module Federation",
+  "workspaces": [
+    "apps/*",
+    "libs/shared/*"
+  ],
+  "scripts": {
+    "predev": "node scripts/free-dev-ports.mjs all",
+    "dev": "npm run build:remotes && sh -c 'npm run preview:products & npm run preview:cart & npm run dev:checkout & npm run dev:shell & wait'",
+    "predev:shell": "node scripts/free-dev-ports.mjs shell",
+    "dev:shell": "nx run shell:dev",
+    "predev:products": "node scripts/free-dev-ports.mjs products",
+    "dev:products": "npm run build:runtime --workspace products-mfe && nx run products-mfe:preview",
+    "predev:cart": "node scripts/free-dev-ports.mjs cart",
+    "dev:cart": "npm run build:runtime --workspace cart-mfe && nx run cart-mfe:preview",
+    "predev:checkout": "node scripts/free-dev-ports.mjs checkout",
+    "dev:checkout": "nx run checkout-mfe:dev",
+    "predev:standalone:products": "node scripts/free-dev-ports.mjs products",
+    "dev:standalone:products": "nx run products-mfe:dev",
+    "predev:standalone:cart": "node scripts/free-dev-ports.mjs cart",
+    "dev:standalone:cart": "nx run cart-mfe:dev",
+    "prepreview:products": "node scripts/free-dev-ports.mjs products",
+    "preview:products": "nx run products-mfe:preview",
+    "prepreview:cart": "node scripts/free-dev-ports.mjs cart",
+    "preview:cart": "nx run cart-mfe:preview",
+    "ports:free": "node scripts/free-dev-ports.mjs all",
+    "ports:free:force": "FREE_DEV_PORTS_FORCE=1 node scripts/free-dev-ports.mjs all",
+    "build:remotes": "nx run-many --target=build:runtime --projects=products-mfe,cart-mfe",
+    "build:all": "nx run-many --target=build --all",
+    "build:affected": "nx affected --target=build",
+    "lint:all": "nx run-many --target=lint --all",
+    "lint:affected": "nx affected --target=lint",
+    "graph": "nx graph",
+    "reset": "nx reset",
+    "install:all": "npm install --workspaces"
+  },
+  "devDependencies": {
+    "@nx/angular": "^22.7.1",
+    "@nx/eslint": "^21.3.2",
+    "@nx/js": "^21.3.2",
+    "@nx/next": "^21.3.2",
+    "@nx/vite": "^21.3.2",
+    "@nx/workspace": "^21.3.2",
+    "eslint": "^10.2.1",
+    "nx": "^21.3.2",
+    "rolldown": "^1.0.0-rc.18",
+    "typescript": "^5.8.3"
+  }
 }

@@ -1,0 +1,22 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "bundler",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2023",
+    "module": "esnext",
+    "lib": ["es2023", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "@ecom/event-bus": ["./libs/shared/event-bus/src/index.ts"],
+      "@ecom/types": ["./libs/shared/types/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

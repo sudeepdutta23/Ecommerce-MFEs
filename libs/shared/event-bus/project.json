@@ -1,0 +1,8 @@
+{
+  "name": "@ecom/event-bus",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/event-bus/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:lib"],
+  "targets": {}
+}

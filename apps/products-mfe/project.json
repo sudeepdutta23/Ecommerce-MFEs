@@ -1,0 +1,15 @@
+{
+  "name": "products-mfe",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/products-mfe/src",
+  "projectType": "application",
+  "tags": ["scope:products", "type:mfe", "framework:react"],
+  "targets": {
+    "build:runtime": {
+      "command": "vite build",
+      "options": {
+        "cwd": "apps/products-mfe"
+      }
+    }
+  }
+}

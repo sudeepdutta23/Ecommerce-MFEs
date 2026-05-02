@@ -1,48 +1,185 @@
-# Dependencies
+# ═══════════════════════════════════════════════════════════════════════════
+# Ecommerce Frontend Monorepo - Git Ignore Configuration
+# Covers Node.js, Angular, React, Vue, Next.js, Vite, NX, and common tools
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dependencies & Package Managers
+# ─────────────────────────────────────────────────────────────────────────────
 node_modules/
+.pnpm-store/
+pnpm-lock.yaml
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
-node_modules
+.yarn/
+!.yarn/releases
+!.yarn/plugins
+!.yarn/versions
 
-# Build outputs
+# ─────────────────────────────────────────────────────────────────────────────
+# Build Outputs & Distributions
+# ─────────────────────────────────────────────────────────────────────────────
 dist/
+dist-*
 build/
-.next/
 out/
-.turbo/
+.next/
+.nuxt/
+coverage/
+.nyc_output/
+tmp/
+temp/
+*.tgz
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# IDE
+# ─────────────────────────────────────────────────────────────────────────────
+# IDE & Editor Configuration
+# ─────────────────────────────────────────────────────────────────────────────
 .vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea/
+.idea_modules/
 *.swp
 *.swo
 *~
 .DS_Store
+Thumbs.db
+*.sublime-workspace
+*.sublime-project
 
-# Logs
-logs/
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment Variables & Secrets
+# ─────────────────────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.example
+!.env.example
+!.env.*.example
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Logs & Debugging
+# ─────────────────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+debug/
+.venv/
 
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage
+# ─────────────────────────────────────────────────────────────────────────────
+# Testing & Coverage
+# ─────────────────────────────────────────────────────────────────────────────
 coverage/
+.coverage
 .nyc_output/
+.pytest_cache/
 
-# Misc
+# ─────────────────────────────────────────────────────────────────────────────
+# Build Caches
+# ─────────────────────────────────────────────────────────────────────────────
 .cache/
 .eslintcache
+.next/cache
+.turbo/
+.parcel-cache
+.vercel
+.cache-dir
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NX Monorepo Specific
+# ─────────────────────────────────────────────────────────────────────────────
+.nx/cache
+.nx/workspace-data
+dist/
+node_modules/.cache
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Angular Specific
+# ─────────────────────────────────────────────────────────────────────────────
+.angular/cache/
+angular-dist-*/
+*.ngfactory.ts
+*.module.ngfactory.ts
+*.metadata.json
+*.code-workspace
+*.ngfactory.js
+
+# ─────────────────────────────────────────────────────────────────────────────
+# React & TypeScript Specific
+# ─────────────────────────────────────────────────────────────────────────────
 *.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Vite Specific
+# ─────────────────────────────────────────────────────────────────────────────
+dist/
+.vite/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VS Code Extensions Cache
+# ─────────────────────────────────────────────────────────────────────────────
+.vscode-test/
+.vscode/extensions/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# System & Temporary Files
+# ─────────────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+*.cab
+*.msi
+*.msix
+*.msinstaller
+*.msp
+*.lnk
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OS-Specific Files
+# ─────────────────────────────────────────────────────────────────────────────
+.env.*.swp
+.env.*.swo
+*~.swp
+*.orig
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Workspace & Project Specific
+# ─────────────────────────────────────────────────────────────────────────────
+.workspace/
+.project/
+local.properties
+*.iml
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker & Container
+# ─────────────────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+.dockerignore.local
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Git-related
+# ─────────────────────────────────────────────────────────────────────────────
+.git/
+.gitignore.local
+.gitattributes.local
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Keep Important Files (Whitelists)
+# ─────────────────────────────────────────────────────────────────────────────
+!.env.example
+!.vscode/settings.json
+!.vscode/extensions.json
+!.gitkeep
