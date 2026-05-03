@@ -1,0 +1,23 @@
+{
+  "name": "checkout-mfe",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/checkout-mfe/src",
+  "projectType": "application",
+  "tags": ["scope:checkout", "type:mfe", "framework:angular"],
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run dev",
+        "cwd": "apps/checkout-mfe"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build",
+        "cwd": "apps/checkout-mfe"
+      }
+    }
+  }
+}
