@@ -1,32 +1,31 @@
 {
-    "name": "ecommerce-microfrontend",
-    "version": "1.0.0",
-    "private": true,
-    "description": "E-commerce Microfrontend Architecture using Module Federation",
-    "workspaces": [
-        "packages/*"
-    ],
-    "scripts": {
-        "preinstall": "npx only-allow npm",
-        "kill:ports": "bash ./scripts/cleanup-ports.sh",
-        "dev": "npm run kill:ports && turbo run dev --parallel --filter=@ecommerce/shell --filter=@ecommerce/home --filter=@ecommerce/product --filter=@ecommerce/cart --filter=@ecommerce/checkout --filter=@ecommerce/profile --filter=@ecommerce/admin",
-        "dev:all": "npm run kill:ports && turbo run dev --parallel",
-        "build": "turbo run build",
-        "dev:shell": "npm run dev -w @ecommerce/shell",
-        "dev:home": "npm run dev -w @ecommerce/home",
-        "dev:product": "npm run dev -w @ecommerce/product",
-        "dev:cart": "npm run dev -w @ecommerce/cart",
-        "dev:checkout": "npm run dev -w @ecommerce/checkout",
-        "dev:profile": "npm run dev -w @ecommerce/profile",
-        "dev:admin": "npm run dev -w @ecommerce/admin",
-        "lint": "turbo run lint",
-        "clean": "turbo run clean && rm -rf node_modules"
-    },
-    "devDependencies": {
-        "turbo": "^2.0.0"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "packageManager": "npm@10.0.0"
+  "name": "ecom-frontend-mfes",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:shell": "turbo run dev --filter=@ecom/shell",
+    "dev:remotes": "turbo run dev --filter=@ecom/auth-dashboard --filter=@ecom/product-catalog --filter=@ecom/analytics",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md,css}\""
+  },
+  "devDependencies": {
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.12.0",
+    "prettier": "^3.3.3",
+    "turbo": "^2.2.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0"
+  }
 }

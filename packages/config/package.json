@@ -1,0 +1,12 @@
+{
+  "name": "@ecom/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared build configuration: Tailwind preset, TypeScript base config, and the Module Federation webpack factory.",
+  "files": [
+    "tailwind-preset.js",
+    "tsconfig.base.json",
+    "webpack"
+  ],
+  "//": "Intentionally dependency-free: create-mfe-config resolves webpack and all plugins from the consuming app's node_modules so each app has exactly one webpack instance."
+}

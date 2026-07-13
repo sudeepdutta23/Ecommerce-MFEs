@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pnpm lint)",
+      "PowerShell(pnpm format:check)",
+      "PowerShell(pnpm format)",
+      "PowerShell(Copy-Item apps\\\\shell\\\\.env.example apps\\\\shell\\\\.env)"
+    ]
+  }
+}

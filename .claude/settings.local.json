@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node -v)",
+      "PowerShell(pnpm -v)",
+      "Skill(dataviz)",
+      "Skill(dataviz:*)",
+      "PowerShell(corepack enable)",
+      "PowerShell(corepack prepare pnpm@9.12.0 --activate)",
+      "PowerShell(corepack disable)",
+      "PowerShell(npm install -g pnpm@9.12.0)",
+      "PowerShell(pnpm --filter @ecom/shell typecheck)",
+      "PowerShell(Test-NetConnection -ComputerName localhost -Port 5432 -InformationLevel Quiet)",
+      "PowerShell(Get-Process -Name \"com.docker.backend\",\"Docker Desktop\" -ErrorAction SilentlyContinue)",
+      "PowerShell($job = Start-Job { docker version --format '{{.Server.Version}}' }; if \\(Wait-Job $job -Timeout 20\\) { Receive-Job $job } else { Stop-Job $job; \"ENGINE_UNRESPONSIVE\" })",
+      "PowerShell(Stop-Process -Name \"Docker Desktop\" -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Name \"com.docker.backend\" -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Start-Process \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\")",
+      "PowerShell(\"Docker Desktop restarting\")",
+      "Bash(docker version *)"
+    ]
+  }
+}
