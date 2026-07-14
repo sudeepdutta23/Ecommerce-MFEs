@@ -3,9 +3,9 @@ import { Button, Card, CardBody, Spinner } from '@ecom/ui';
 
 export function RemoteLoadingFallback({ remote }: { remote: RemoteDefinition }) {
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
+    <div className="flex min-h-[50vh] animate-fade-in flex-col items-center justify-center gap-3">
       <Spinner size="lg" label={`Loading ${remote.displayName}`} />
-      <p className="text-sm text-slate-500">Loading {remote.displayName}…</p>
+      <p className="animate-pulse text-sm text-slate-500">Loading {remote.displayName}…</p>
     </div>
   );
 }
@@ -18,10 +18,10 @@ interface RemoteErrorFallbackProps {
 
 export function RemoteErrorFallback({ remote, error, onRetry }: RemoteErrorFallbackProps) {
   return (
-    <div className="mx-auto mt-16 max-w-lg">
+    <div className="mx-auto mt-16 max-w-lg animate-fade-in-up">
       <Card>
         <CardBody className="flex flex-col items-center gap-4 py-10 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-2xl">
+          <span className="flex h-12 w-12 animate-wiggle items-center justify-center rounded-full bg-red-50 text-2xl">
             ⚠️
           </span>
           <div>

@@ -37,9 +37,10 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-md font-semibold shadow-sm transition-colors',
+        'inline-flex items-center justify-center gap-2 rounded-md font-semibold shadow-sm',
+        'transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:translate-y-0 active:scale-[0.97]',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-        'disabled:cursor-not-allowed',
+        'disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:active:scale-100',
         variantClasses[variant],
         sizeClasses[size],
         className,

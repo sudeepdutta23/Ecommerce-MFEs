@@ -1,3 +1,13 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # Legacy Next.js MFEs from the original project generation — excluded so
+  # pnpm/turbo only operate on the active @ecom/* workspace.
+  - "!packages/admin"
+  - "!packages/cart"
+  - "!packages/checkout"
+  - "!packages/home"
+  - "!packages/product"
+  - "!packages/profile"
+  - "!packages/shared"
+  - "!packages/shell"

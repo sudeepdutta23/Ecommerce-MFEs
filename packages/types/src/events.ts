@@ -11,6 +11,10 @@ export interface MfeEventMap {
   'auth:login': { user: SessionUser };
   'auth:logout': undefined;
   'cart:item-added': { productId: string; name: string; price: number; currency: string };
+  /** Broadcast after ANY cart mutation with the new absolute item count. */
+  'cart:changed': { count: number };
+  /** Broadcast when checkout completes and an order record is persisted. */
+  'order:placed': { orderId: string; total: number; currency: string };
   'analytics:track': { name: string; source: string; payload?: Record<string, unknown> };
 }
 

@@ -1,39 +1,41 @@
-import { observer } from 'mobx-react-lite';
+import { Link } from 'react-router-dom';
 import { type Product } from '@ecom/types';
-import { Badge, Button, DealCard } from '@ecom/ui';
-import { useCatalogStore } from './CatalogProvider';
+import { Badge, DealCard } from '@ecom/ui';
+import { AddToCartButton } from './AddToCartButton';
+import { ProductMedia } from './ProductMedia';
 
-const categoryEmoji: Record<string, string> = {
-  Smartphones: '📱',
-  Audio: '🎧',
-  Wearables: '⌚',
-  'Daily Essentials': '🧺',
-};
-
-const productEmoji: Record<string, string> = {
-  'p-7': '🍓',
-  'p-8': '🥭',
-};
-
-export const ProductCard = observer(function ProductCard({ product }: { product: Product }) {
-  const store = useCatalogStore();
-
+export function ProductCard({
+  product,
+  /**
+   * Route-relative link target for the overview page. The default works from
+   * the catalog index route; pages on sibling routes pass e.g. `../${id}`.
+   */
+  to = product.id,
+}: {
+  product: Product;
+  to?: string;
+}) {
   return (
     <DealCard
       name={product.name}
       price={product.price}
       mrp={product.mrp}
       currency={product.currency}
-      media={<span aria-hidden>{productEmoji[product.id] ?? categoryEmoji[product.category] ?? '📦'}</span>}
+      media={<ProductMedia product={product} />}
+      stretchedLink={
+        <Link
+          to={to}
+          aria-label={`View ${product.name}`}
+          className="absolute inset-0 z-[5] rounded-card"
+        />
+      }
       footer={
         product.inStock ? (
-          <Button size="sm" className="w-full" onClick={() => store.addToCart(product)}>
-            Add to cart
-          </Button>
+          <AddToCartButton product={product} size="sm" className="w-full" />
         ) : (
           <Badge tone="negative">Out of stock</Badge>
         )
       }
     />
   );
-});
+}

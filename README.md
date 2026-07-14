@@ -9,22 +9,22 @@ A production-ready React microfrontend architecture built with **TypeScript**, *
 │  apps/shell  (host, :3000)                                     │
 │  layout · navigation · auth bootstrap · remote registry       │
 │  loads remoteEntry.js at RUNTIME from env-configured URLs     │
-└───────┬──────────────────┬──────────────────┬──────────────────┘
-        │ /account/*       │ /catalog/*       │ /analytics/*
-┌───────▼───────┐  ┌───────▼────────┐  ┌──────▼─────────┐
-│ auth-dashboard │  │ product-catalog│  │ analytics      │
-│ (:3001)        │  │ (:3002)        │  │ (:3003)        │
-│ Redux Toolkit  │  │ MobX           │  │ Zustand        │
-└───────┬───────┘  └───────┬────────┘  └──────┬─────────┘
-        │                  │                  │
-        └───── typed event bus (CustomEvents) ┘
+└───────┬──────────────────┬──────────────────┬─────────────┬────┘
+        │ /account/*       │ /catalog/*       │ /analytics/*│ /cart/*
+┌───────▼───────┐  ┌───────▼────────┐  ┌──────▼─────────┐ ┌▼──────────┐
+│ auth-dashboard │  │ product-catalog│  │ analytics      │ │ cart      │
+│ (:3001)        │  │ (:3002)        │  │ (:3003)        │ │ (:3004)   │
+│ Redux Toolkit  │  │ MobX           │  │ Zustand        │ │ MobX      │
+└───────┬───────┘  └───────┬────────┘  └──────┬─────────┘ └┬──────────┘
+        │                  │                  │             │
+        └────────── typed event bus (CustomEvents) ─────────┘
               contract: packages/types MfeEventMap
 
 shared packages (source-consumed, no build step):
   @ecom/ui      design-system primitives (UI only)
   @ecom/config  Tailwind preset · tsconfig base · webpack MFE factory
   @ecom/types   domain models · event map · remote contracts
-  @ecom/utils   event bus · API client · auth session · formatters
+  @ecom/utils   event bus · axios client + interceptors · auth session · formatters
 ```
 
 ### Key decisions
@@ -47,7 +47,7 @@ Prerequisites: Node ≥ 18.17 and pnpm 9 (`corepack enable` will provision it).
 ```bash
 pnpm install
 
-# run everything (shell :3000 + all remotes :3001-:3003)
+# run everything (shell :3000 + all remotes :3001-:3005)
 pnpm dev
 
 # or run apps individually — every remote works standalone
@@ -55,7 +55,7 @@ pnpm --filter @ecom/product-catalog dev   # http://localhost:3002
 pnpm dev:shell                            # host only
 ```
 
-Open http://localhost:3000. Sign in under **Account** (any email + 4-char password), add products under **Catalog**, and watch **Analytics** react — three state libraries, zero shared stores.
+Open http://localhost:3000. Sign in under **Account** (any email + 4-char password), add products under **Catalog**, check out in **Cart**, follow deliveries under **Orders** (/orders), and watch **Analytics** react — three state libraries, zero shared stores.
 
 ### Other commands
 

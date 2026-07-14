@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { CatalogProvider } from '@/features/catalog/CatalogProvider';
 import { CatalogPage } from '@/features/catalog/CatalogPage';
+import { ProductOverviewPage } from '@/features/catalog/ProductOverviewPage';
 import './styles/index.css';
 
 /**
@@ -12,6 +13,7 @@ export default function App() {
     <CatalogProvider>
       <Routes>
         <Route index element={<CatalogPage />} />
+        <Route path=":productId" element={<ProductOverviewPage />} />
       </Routes>
     </CatalogProvider>
   );

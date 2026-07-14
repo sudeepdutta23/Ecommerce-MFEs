@@ -31,4 +31,18 @@ export const remotes: RemoteDefinition[] = [
     routePath: 'analytics',
     displayName: 'Analytics',
   },
+  {
+    scope: 'cart',
+    url: process.env.REMOTE_CART_URL ?? 'http://localhost:3004/remoteEntry.js',
+    module: './App',
+    routePath: 'cart',
+    displayName: 'Cart',
+  },
+  {
+    scope: 'orders',
+    url: process.env.REMOTE_ORDERS_URL ?? 'http://localhost:3005/remoteEntry.js',
+    module: './App',
+    routePath: 'orders',
+    displayName: 'Orders',
+  },
 ];
