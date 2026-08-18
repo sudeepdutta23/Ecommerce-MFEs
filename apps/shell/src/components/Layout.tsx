@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { eventBus, getCartCount } from '@ecom/utils';
 import { cn } from '@ecom/ui';
@@ -160,10 +160,18 @@ export function Layout({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState('');
   const { count: cartCount, bumped } = useCartCount();
   const scrolled = useScrolled();
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (event: FormEvent) => {
     event.preventDefault();
     navigate(`/catalog?q=${encodeURIComponent(search.trim())}`);
+  };
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.7 * (direction === 'left' ? -1 : 1);
+    el.scrollBy({ left: amount, behavior: 'smooth' });
   };
 
   return (
@@ -171,8 +179,20 @@ export function Layout({ children }: { children: ReactNode }) {
       {/* Top utility strip */}
       <div className="bg-surface-sunken text-xs text-slate-500">
         <div className="mx-auto flex max-w-content items-center justify-between gap-4 px-6 py-2">
-          <p className="truncate">Welcome to worldwide SudeepMart!</p>
-          <div className="flex items-center gap-6 whitespace-nowrap">
+          <p className="hidden truncate sm:block">Welcome to worldwide SudeepMart!</p>
+          <div className="ml-auto flex items-center gap-6 whitespace-nowrap">
+            {user?.role === 'admin' ? (
+              // Plain anchor + new tab: the console is a separate platform,
+              // so it opens alongside the storefront rather than inside it.
+              <a
+                href="/admin"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 font-semibold text-brand-600 transition-colors hover:text-brand-700"
+              >
+                Admin Console <span aria-hidden>↗</span>
+              </a>
+            ) : null}
             <span className="hidden items-center gap-1.5 sm:flex">
               <MapPinIcon className="h-3.5 w-3.5 text-brand-500" />
               Deliver to <b className="font-semibold text-slate-700">423651</b>
@@ -203,13 +223,13 @@ export function Layout({ children }: { children: ReactNode }) {
         )}
       >
         <div className="mx-auto flex max-w-content items-center gap-4 px-6 py-4 sm:gap-6">
-          <button
+          {/* <button
             type="button"
             aria-label="Menu"
             className="rounded-lg bg-surface-sunken p-2 text-brand-500 transition-all duration-200 hover:scale-105 hover:bg-brand-50 active:scale-95"
           >
             <MenuIcon className="h-5 w-5" />
-          </button>
+          </button> */}
 
           <Link
             to="/"
@@ -265,19 +285,55 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
+        {/* Mobile search (the inline header search is hidden below md) */}
+        <div className="mx-auto max-w-content px-6 pb-3 md:hidden">
+          <form onSubmit={handleSearch} role="search" className="group relative">
+            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-500 transition-transform duration-200 group-focus-within:scale-110" />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search essentials, groceries and more..."
+              aria-label="Search products"
+              className="w-full rounded-lg border-0 bg-surface-sunken py-2.5 pl-11 pr-4 text-sm text-slate-700 transition-shadow duration-300 placeholder:text-slate-400 focus:shadow-glow focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </form>
+        </div>
+
         {/* Category pill nav */}
         <nav aria-label="Categories" className="mx-auto max-w-content px-6 pb-4">
-          <div className="no-scrollbar flex items-center gap-3 overflow-x-auto">
-            {CATEGORY_PILLS.map((pill) => (
-              <Link
-                key={pill.label}
-                to={`/catalog?category=${encodeURIComponent(pill.category)}`}
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-sunken px-4 py-2 text-sm text-slate-700 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-500 hover:text-white hover:shadow-md active:translate-y-0"
-              >
-                {pill.label}
-                <ChevronDownIcon className="h-3.5 w-3.5" />
-              </Link>
-            ))}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => scrollCategories('left')}
+              aria-label="Scroll categories left"
+              className="absolute left-4 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg text-slate-700 shadow-card transition-all duration-200 hover:scale-110 hover:bg-brand-50 active:scale-95 sm:flex"
+            >
+              ‹
+            </button>
+            <div
+              ref={categoryScrollRef}
+              className="no-scrollbar flex items-center gap-3 overflow-x-auto scroll-smooth sm:px-11"
+            >
+              {CATEGORY_PILLS.map((pill) => (
+                <Link
+                  key={pill.label}
+                  to={`/catalog?category=${encodeURIComponent(pill.category)}`}
+                  className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-sunken px-4 py-2 text-sm text-slate-700 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-500 hover:text-white hover:shadow-md active:translate-y-0"
+                >
+                  {pill.label}
+                  <ChevronDownIcon className="h-3.5 w-3.5" />
+                </Link>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => scrollCategories('right')}
+              aria-label="Scroll categories right"
+              className="absolute right-4 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg text-slate-700 shadow-card transition-all duration-200 hover:scale-110 hover:bg-brand-50 active:scale-95 sm:flex"
+            >
+              ›
+            </button>
           </div>
         </nav>
       </header>

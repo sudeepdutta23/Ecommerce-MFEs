@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:shell": "turbo run dev --filter=@ecom/shell",
-    "dev:remotes": "turbo run dev --filter=@ecom/auth-dashboard --filter=@ecom/product-catalog --filter=@ecom/analytics --filter=@ecom/cart --filter=@ecom/orders",
+    "dev:remotes": "turbo run dev --filter=@ecom/auth-dashboard --filter=@ecom/product-catalog --filter=@ecom/analytics --filter=@ecom/cart --filter=@ecom/orders --filter=@ecom/admin",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "eslint .",

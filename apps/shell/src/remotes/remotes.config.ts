@@ -45,4 +45,14 @@ export const remotes: RemoteDefinition[] = [
     routePath: 'orders',
     displayName: 'Orders',
   },
+  {
+    scope: 'admin',
+    url: process.env.REMOTE_ADMIN_URL ?? 'http://localhost:3006/remoteEntry.js',
+    module: './App',
+    routePath: 'admin',
+    displayName: 'Admin',
+    // The admin console is a separate platform: it renders without the
+    // storefront chrome and brings its own full-page layout.
+    standalone: true,
+  },
 ];

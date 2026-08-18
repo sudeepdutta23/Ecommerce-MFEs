@@ -13,7 +13,7 @@ const HERO_AUTOPLAY_MS = 5000;
 
 function ViewAllLink({ to }: { to: string }) {
   return (
-    <Link to={to} className="group flex items-center gap-1 transition-colors hover:text-brand-600">
+    <Link to={to} className="group flex items-center gap-1 whitespace-nowrap transition-colors hover:text-brand-600">
       View All{' '}
       <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-1">
         ›
@@ -42,7 +42,7 @@ function HeroCarousel() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       className={cn(
-        'relative overflow-hidden rounded-2xl bg-[length:200%_200%] px-8 py-10 text-white transition-colors duration-700 animate-gradient-pan sm:px-16 sm:py-14',
+        'relative overflow-hidden rounded-2xl bg-[length:200%_200%] px-6 py-8 text-white transition-colors duration-700 animate-gradient-pan sm:px-16 sm:py-14',
         slide.bgClass,
       )}
     >
@@ -185,9 +185,9 @@ export function HomePage() {
             action={<ViewAllLink to="/catalog" />}
           />
         </Reveal>
-        <div className="mt-6 flex flex-wrap justify-between gap-4">
+        <div className="no-scrollbar -mx-6 mt-6 flex gap-4 overflow-x-auto px-6 sm:mx-0 sm:flex-wrap sm:justify-between sm:overflow-x-visible sm:px-0">
           {topCategories.map((category, i) => (
-            <Reveal key={category.label} delay={i * 60}>
+            <Reveal key={category.label} delay={i * 60} className="shrink-0">
               <Link to="/catalog">
                 <CategoryCircle
                   icon={

@@ -1,4 +1,4 @@
-import { type CartItem, type Order } from '@ecom/types';
+import { type CartItem, type Order, type OrderStatus } from '@ecom/types';
 
 /**
  * Shared order persistence — same contract style as cart-storage: the cart
@@ -41,5 +41,35 @@ export function addOrder(input: {
     status: 'processing',
   };
   saveOrders([order, ...getOrders()]);
+  return order;
+}
+
+/** Fulfillment pipeline, in order. Statuses only ever move forward. */
+export const ORDER_STATUS_FLOW: readonly OrderStatus[] = ['processing', 'shipped', 'delivered'];
+
+export function orderStatusRank(status: OrderStatus): number {
+  return ORDER_STATUS_FLOW.indexOf(status);
+}
+
+/**
+ * Status shown to users. The demo lifecycle derives progression from order
+ * age (so timelines visibly advance without a backend), but an explicitly
+ * persisted status — e.g. an admin marking an order shipped — always wins
+ * when it is further along. Every MFE must render THIS, not `order.status`,
+ * so customer and ops views agree.
+ */
+export function effectiveOrderStatus(order: Order): OrderStatus {
+  const ageMinutes = (Date.now() - order.placedAt) / 60_000;
+  const derived: OrderStatus = ageMinutes < 2 ? 'processing' : ageMinutes < 10 ? 'shipped' : 'delivered';
+  return orderStatusRank(order.status) > orderStatusRank(derived) ? order.status : derived;
+}
+
+/** Persist a new status for one order. Returns the updated order, or null if not found. */
+export function updateOrderStatus(orderId: string, status: OrderStatus): Order | null {
+  const orders = getOrders();
+  const order = orders.find((entry) => entry.id === orderId);
+  if (!order) return null;
+  order.status = status;
+  saveOrders(orders);
   return order;
 }

@@ -1,4 +1,4 @@
-import { type SessionUser } from './models';
+import { type OrderStatus, type SessionUser } from './models';
 
 /**
  * The cross-MFE event contract.
@@ -15,6 +15,8 @@ export interface MfeEventMap {
   'cart:changed': { count: number };
   /** Broadcast when checkout completes and an order record is persisted. */
   'order:placed': { orderId: string; total: number; currency: string };
+  /** Broadcast when an order's persisted status changes (e.g. admin fulfillment). */
+  'order:updated': { orderId: string; status: OrderStatus };
   'analytics:track': { name: string; source: string; payload?: Record<string, unknown> };
 }
 

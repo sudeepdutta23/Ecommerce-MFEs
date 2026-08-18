@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { HomePage } from '@/pages/HomePage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -26,21 +26,43 @@ export function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          {/* Remote routes are generated from the registry: each remote owns
-              everything under its path segment via the trailing wildcard. */}
-          {remotes.map((remote) => (
+      <Routes>
+        {/* Standalone remotes are separate platforms (e.g. the admin console):
+            they own the full viewport and ship their own layout, so no
+            storefront chrome is rendered around them. */}
+        {remotes
+          .filter((remote) => remote.standalone)
+          .map((remote) => (
             <Route
               key={remote.scope}
               path={`${remote.routePath}/*`}
               element={<RemoteModule remote={remote} />}
             />
           ))}
+
+        {/* Everything else is a storefront section and shares the customer
+            Layout. Remote routes are generated from the registry: each remote
+            owns everything under its path segment via the trailing wildcard. */}
+        <Route
+          element={
+            <Layout>
+              <Outlet />
+            </Layout>
+          }
+        >
+          <Route path="/" element={<HomePage />} />
+          {remotes
+            .filter((remote) => !remote.standalone)
+            .map((remote) => (
+              <Route
+                key={remote.scope}
+                path={`${remote.routePath}/*`}
+                element={<RemoteModule remote={remote} />}
+              />
+            ))}
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Layout>
+        </Route>
+      </Routes>
     </BrowserRouter>
   );
 }

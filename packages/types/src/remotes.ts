@@ -12,6 +12,12 @@ export interface RemoteDefinition {
   routePath: string;
   /** Label used in the shell navigation. */
   displayName: string;
+  /**
+   * Render outside the storefront chrome (no shell header/footer). The remote
+   * owns the full viewport and ships its own layout — used for remotes that
+   * are a separate platform rather than a storefront section (e.g. admin).
+   */
+  standalone?: boolean;
 }
 
 /** Shape of a remote's exposed './App' module. */
