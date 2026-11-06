@@ -38,7 +38,8 @@ declare module 'axios' {
   }
 }
 
-const DEFAULT_BASE_URL = 'http://localhost:8080/api/v1';
+/** API gateway base URL: per-environment via API_GATEWAY_URL (inlined at build time). */
+const DEFAULT_BASE_URL = process.env.API_GATEWAY_URL ?? 'http://localhost:8080/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
 const RETRY_DELAY_MS = 400;
 const RETRYABLE_STATUS = new Set([429, 502, 503, 504]);

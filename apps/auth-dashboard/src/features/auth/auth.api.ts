@@ -77,7 +77,7 @@ export async function logoutRequest(refreshToken: string): Promise<void> {
 export function apiErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     if (error.status === 0) {
-      return 'Cannot reach the server — is the backend gateway running on :8080?';
+      return 'Cannot reach the server — the API gateway is down or unreachable.';
     }
     const body = error.body as { error?: { message?: string } } | null;
     if (body?.error?.message) {
