@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Badge, Button, Card, CardBody, CardHeader, CardTitle, Reveal } from '@ecom/ui';
+import { Link } from 'react-router-dom';
+import { Badge, Button, Card, CardBody, CardHeader, CardTitle, Reveal, useResource } from '@ecom/ui';
+import { authApi, formatDateTime, notificationsApi } from '@ecom/utils';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { logout, syncSession } from './auth.slice';
+import { logout } from './auth.slice';
 
 function initialsOf(name: string): string {
   return name
@@ -17,20 +17,13 @@ function initialsOf(name: string): string {
 export function DashboardPage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const me = useResource(() => authApi.me(), []);
+  const unread = useResource(() => notificationsApi.unreadCount(), []);
 
-  // Revalidate the persisted session against GET /auth/me (the interceptor
-  // refreshes an expired access token transparently).
-  useEffect(() => {
-    void dispatch(syncSession());
-  }, [dispatch]);
-
-  if (!user) {
-    return <Navigate to="login" replace />;
-  }
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
-      {/* Gradient welcome banner */}
       <div className="animate-fade-in-down overflow-hidden rounded-2xl bg-gradient-to-r from-brand-500 via-brand-600 to-brand-800 px-6 py-6 text-white shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -39,17 +32,10 @@ export function DashboardPage() {
             </span>
             <div>
               <h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
-              <p className="mt-0.5 text-sm text-white/80">
-                This dashboard is the auth-dashboard MFE — state lives in its own Redux Toolkit
-                store.
-              </p>
+              <p className="mt-0.5 text-sm text-white/80">{user.email}</p>
             </div>
           </div>
-          <Button
-            variant="secondary"
-            onClick={() => dispatch(logout())}
-            className="!ring-0 hover:!bg-white/90"
-          >
+          <Button variant="secondary" onClick={() => void dispatch(logout())} className="!ring-0 hover:!bg-white/90">
             Sign out
           </Button>
         </div>
@@ -59,23 +45,35 @@ export function DashboardPage() {
         <Reveal delay={100}>
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>Profile</CardTitle>
+              <CardTitle>Account</CardTitle>
             </CardHeader>
             <CardBody>
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Name</dt>
-                  <dd className="font-medium text-slate-900">{user.name}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Email</dt>
-                  <dd className="font-medium text-slate-900">{user.email}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Role</dt>
+                  <dt className="text-slate-500">Status</dt>
                   <dd>
-                    <Badge tone="brand">{user.role}</Badge>
+                    <Badge tone="positive">{me.data?.status ?? '…'}</Badge>
                   </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-500">Roles</dt>
+                  <dd className="flex flex-wrap justify-end gap-1">
+                    {(me.data?.roles ?? []).map((role) => (
+                      <Badge key={role} tone="brand">
+                        {role}
+                      </Badge>
+                    ))}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-slate-500">Last sign-in</dt>
+                  <dd className="text-slate-900">
+                    {me.data?.lastLoginAt ? formatDateTime(me.data.lastLoginAt) : '—'}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-slate-500">Member since</dt>
+                  <dd className="text-slate-900">{me.data ? formatDateTime(me.data.createdAt) : '—'}</dd>
                 </div>
               </dl>
             </CardBody>
@@ -85,18 +83,17 @@ export function DashboardPage() {
         <Reveal delay={200}>
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>Session</CardTitle>
+              <CardTitle>Notifications</CardTitle>
             </CardHeader>
             <CardBody className="space-y-3 text-sm text-slate-600">
               <p>
-                Signed in against the auth-service via the gateway. Signing in emitted{' '}
-                <code className="font-mono text-xs">auth:login</code> on the event bus — the shell
-                header and the analytics MFE both reacted without sharing a store. Signing out
-                revokes the refresh token server-side.
+                You have <b className="font-semibold text-slate-900">{unread.data?.unread ?? 0}</b> unread notifications.
               </p>
-              <Badge tone="positive" className="animate-pulse-ring">
-                Session active
-              </Badge>
+              <Link to="notifications">
+                <Button variant="secondary" size="sm">
+                  Open inbox
+                </Button>
+              </Link>
             </CardBody>
           </Card>
         </Reveal>

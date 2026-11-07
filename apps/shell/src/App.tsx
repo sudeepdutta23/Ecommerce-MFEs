@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { HomePage } from '@/pages/HomePage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -20,6 +20,27 @@ function ScrollToTop() {
   }, [pathname]);
 
   return null;
+}
+
+/**
+ * The backend's emails and notifications link to these paths; the pages live in the account remote.
+ * The query string carries the one-time token, so it must survive the redirect.
+ */
+const EMAIL_LINKS: Record<string, string> = {
+  '/verify-email': '/account/verify-email',
+  '/reset-password': '/account/reset-password',
+  '/forgot-password': '/account/forgot-password',
+  '/invitations/accept': '/account/invitations/accept',
+};
+
+function RedirectKeepingQuery({ to }: { to: string }) {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+}
+
+function SellerOrderLink() {
+  const { orgId, orderId } = useParams();
+  return <Navigate to={`/account/seller/${orgId}/orders/${orderId}`} replace />;
 }
 
 export function App() {
@@ -51,6 +72,10 @@ export function App() {
           }
         >
           <Route path="/" element={<HomePage />} />
+          {Object.entries(EMAIL_LINKS).map(([from, to]) => (
+            <Route key={from} path={from} element={<RedirectKeepingQuery to={to} />} />
+          ))}
+          <Route path="/organizations/:orgId/orders/:orderId" element={<SellerOrderLink />} />
           {remotes
             .filter((remote) => !remote.standalone)
             .map((remote) => (

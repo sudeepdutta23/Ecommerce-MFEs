@@ -29,21 +29,15 @@ function RatingStars({ rating }: { rating: number }) {
   );
 }
 
-const PERKS = [
-  { icon: '🚚', title: 'Free Delivery', detail: 'On orders above ₹499' },
-  { icon: '↩️', title: '7-Day Replacement', detail: 'Hassle-free returns' },
-  { icon: '🛡️', title: 'Genuine Product', detail: 'Direct from brand' },
-];
-
 export const ProductOverviewPage = observer(function ProductOverviewPage() {
   const store = useCatalogStore();
   const { productId = '' } = useParams();
-  const product = store.productById(productId);
+  const product = store.product;
   const viewedProductId = product?.id;
 
   useEffect(() => {
-    void store.ensureProductsLoaded();
-  }, [store]);
+    void store.loadProduct(productId);
+  }, [store, productId]);
 
   // Redundant under the shell (its router scrolls on navigation) but keeps
   // standalone dev behaving the same.
@@ -62,7 +56,7 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
     }
   }, [viewedProductId]);
 
-  if (store.status === 'loading') {
+  if (store.productStatus === 'loading') {
     return (
       <div className="grid animate-fade-in gap-10 lg:grid-cols-2">
         <div className="space-y-3">
@@ -84,14 +78,14 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
     );
   }
 
-  if (store.status === 'error') {
+  if (store.productStatus === 'error') {
     return (
       <div className="flex min-h-[40vh] animate-fade-in-up flex-col items-center justify-center gap-3">
         <span className="animate-wiggle text-4xl" aria-hidden>
           ⚠️
         </span>
         <p className="text-slate-600">Could not load this product.</p>
-        <Button variant="secondary" onClick={() => void store.loadProducts()}>
+        <Button variant="secondary" onClick={() => void store.loadProduct(productId)}>
           Retry
         </Button>
       </div>
@@ -114,9 +108,7 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
 
   const hasDiscount = product.mrp !== undefined && product.mrp > product.price;
   const specEntries = Object.entries(product.specs ?? {});
-  const relatedProducts = store.products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const relatedProducts = store.relatedProducts;
 
   return (
     <div key={product.id} className="space-y-12">
@@ -127,15 +119,19 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
         <span className="mx-2" aria-hidden>
           /
         </span>
-        <Link
-          to={{ pathname: '..', search: `?category=${encodeURIComponent(product.category)}` }}
-          className="transition-colors hover:text-brand-600"
-        >
-          {product.category}
-        </Link>
-        <span className="mx-2" aria-hidden>
-          /
-        </span>
+        {product.categorySlug ? (
+          <>
+            <Link
+              to={{ pathname: '..', search: `?category=${encodeURIComponent(product.categorySlug)}` }}
+              className="transition-colors hover:text-brand-600"
+            >
+              {product.category}
+            </Link>
+            <span className="mx-2" aria-hidden>
+              /
+            </span>
+          </>
+        ) : null}
         <span className="font-medium text-slate-900">{product.name}</span>
       </nav>
 
@@ -144,7 +140,7 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
 
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="brand">{product.category}</Badge>
+            {product.category ? <Badge tone="brand">{product.category}</Badge> : null}
             {product.inStock ? (
               <Badge tone="positive">In stock</Badge>
             ) : (
@@ -156,7 +152,8 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
             <h1 className="text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
               {product.name}
             </h1>
-            <RatingStars rating={product.rating} />
+            {product.rating !== undefined ? <RatingStars rating={product.rating} /> : null}
+            {product.sellerName ? <p className="text-sm text-slate-500">Sold by {product.sellerName}</p> : null}
           </div>
 
           <div>
@@ -213,17 +210,11 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-6">
-            {PERKS.map((perk) => (
-              <div key={perk.title} className="text-center">
-                <span aria-hidden className="text-2xl">
-                  {perk.icon}
-                </span>
-                <p className="mt-1.5 text-xs font-semibold text-slate-900">{perk.title}</p>
-                <p className="text-xs text-slate-500">{perk.detail}</p>
-              </div>
-            ))}
-          </div>
+          {store.cartError ? (
+            <p role="alert" className="text-sm text-negative">
+              {store.cartError}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -264,7 +255,7 @@ export const ProductOverviewPage = observer(function ProductOverviewPage() {
             }
             action={
               <Link
-                to={{ pathname: '..', search: `?category=${encodeURIComponent(product.category)}` }}
+                to={{ pathname: '..', search: `?category=${encodeURIComponent(product.categorySlug ?? '')}` }}
                 className="font-semibold text-brand-600 hover:text-brand-700"
               >
                 View all ›

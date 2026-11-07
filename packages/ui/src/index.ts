@@ -11,3 +11,5 @@ export * from './CategoryCircle';
 export * from './Reveal';
 export * from './AnimatedNumber';
 export * from './cn';
+export * from './Notice';
+export * from './useResource';

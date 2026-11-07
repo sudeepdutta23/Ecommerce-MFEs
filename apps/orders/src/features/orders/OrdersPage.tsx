@@ -1,109 +1,74 @@
+import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Link } from 'react-router-dom';
-import { type Order, type OrderStatus } from '@ecom/types';
-import { Badge, Button, ImageWithFallback, SectionHeader } from '@ecom/ui';
-import { formatCurrency, formatDateTime } from '@ecom/utils';
+import { Badge, Button, SectionHeader, Spinner } from '@ecom/ui';
+import { formatCurrency, formatDateTime, type OrderSummary } from '@ecom/utils';
 import { useOrdersStore } from './OrdersProvider';
-import { deriveStatus } from './orders.store';
+import { STATUS_META } from './order-status';
 
-const STATUS_META: Record<OrderStatus, { label: string; tone: 'warning' | 'brand' | 'positive'; icon: string }> = {
-  processing: { label: 'Processing', tone: 'warning', icon: '⏳' },
-  shipped: { label: 'Shipped', tone: 'brand', icon: '🚚' },
-  delivered: { label: 'Delivered', tone: 'positive', icon: '✅' },
-};
-
-/** Three-step delivery progress bar driven by the derived status. */
-function StatusTimeline({ status }: { status: OrderStatus }) {
-  const steps: OrderStatus[] = ['processing', 'shipped', 'delivered'];
-  const activeIndex = steps.indexOf(status);
+function OrderCard({ order }: { order: OrderSummary }) {
+  const meta = STATUS_META[order.status];
 
   return (
-    <div className="flex items-center gap-1.5" aria-hidden>
-      {steps.map((step, i) => (
-        <span
-          key={step}
-          className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${
-            i <= activeIndex ? 'bg-brand-500' : 'bg-slate-200'
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-
-const OrderCard = observer(function OrderCard({ order }: { order: Order }) {
-  const status = deriveStatus(order);
-  const meta = STATUS_META[status];
-
-  return (
-    <article className="overflow-hidden rounded-card border border-slate-200 bg-surface shadow-card transition-all duration-300 ease-out-expo hover:border-brand-200 hover:shadow-card-hover">
+    <Link
+      to={order.id}
+      className="block overflow-hidden rounded-card border border-slate-200 bg-surface shadow-card transition-all duration-300 ease-out-expo hover:border-brand-200 hover:shadow-card-hover"
+    >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-surface-sunken/60 px-5 py-3">
         <div>
-          <p className="font-mono text-sm font-semibold text-slate-900">{order.id}</p>
-          <p className="text-xs text-slate-500">Placed {formatDateTime(order.placedAt)}</p>
+          <p className="text-sm font-semibold text-slate-900">{order.sellerName}</p>
+          <p className="text-xs text-slate-500">Placed {formatDateTime(order.createdAt)}</p>
         </div>
         <Badge tone={meta.tone}>
           {meta.icon} {meta.label}
         </Badge>
       </header>
-
-      <div className="space-y-3 px-5 py-4">
-        {order.items.map((item) => (
-          <div key={item.productId} className="flex items-center gap-3">
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-surface-sunken">
-              {item.imageUrl ? (
-                <ImageWithFallback
-                  src={item.imageUrl}
-                  alt=""
-                  fallback={
-                    <span className="flex h-full w-full items-center justify-center text-xl" aria-hidden>
-                      📦
-                    </span>
-                  }
-                />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-xl" aria-hidden>
-                  📦
-                </span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-slate-900">{item.name}</p>
-              <p className="text-xs text-slate-500">
-                {item.quantity} × {formatCurrency(item.price, item.currency)}
-              </p>
-            </div>
-            <p className="text-sm font-semibold text-slate-900">
-              {formatCurrency(item.price * item.quantity, item.currency)}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <footer className="space-y-3 border-t border-slate-100 px-5 py-4">
-        <StatusTimeline status={status} />
-        <div className="flex items-center justify-between text-sm">
-          {order.savings > 0 ? (
-            <p className="font-medium text-positive">
-              You saved {formatCurrency(order.savings, order.currency)}
-            </p>
-          ) : (
-            <span />
-          )}
-          <p className="text-slate-500">
-            Total:{' '}
-            <span className="text-base font-bold text-slate-900">
-              {formatCurrency(order.subtotal, order.currency)}
-            </span>
-          </p>
-        </div>
+      <footer className="flex items-center justify-between px-5 py-4 text-sm">
+        <span className="font-mono text-xs text-slate-400">{order.id.slice(0, 8)}</span>
+        <span className="text-base font-bold text-slate-900">{formatCurrency(order.total, order.currency)}</span>
       </footer>
-    </article>
+    </Link>
   );
-});
+}
 
 export const OrdersPage = observer(function OrdersPage() {
   const store = useOrdersStore();
+
+  useEffect(() => {
+    void store.load(0);
+  }, [store]);
+
+  if (!store.signedIn) {
+    return (
+      <div className="flex min-h-[50vh] animate-fade-in-up flex-col items-center justify-center gap-4 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Sign in to see your orders</h1>
+        <Link to="/account/login">
+          <Button size="lg">Sign in</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (store.loading && store.orders.length === 0) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (store.error) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
+        <p role="alert" className="text-slate-600">
+          {store.error}
+        </p>
+        <Button variant="secondary" onClick={() => void store.load()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   if (store.orders.length === 0) {
     return (
@@ -133,24 +98,38 @@ export const OrdersPage = observer(function OrdersPage() {
           }
           action={
             <Badge tone="brand">
-              {store.orders.length} order{store.orders.length === 1 ? '' : 's'} ·{' '}
-              {formatCurrency(store.totalSpent, store.currency)}
+              {store.total} order{store.total === 1 ? '' : 's'}
             </Badge>
           }
         />
       </div>
 
       <div className="grid animate-fade-in-up gap-5 lg:grid-cols-2">
-        {store.orders.map((order, i) => (
-          <div
-            key={order.id}
-            className="animate-fade-in-up"
-            style={{ animationDelay: `${Math.min(i * 80, 400)}ms` }}
-          >
-            <OrderCard order={order} />
-          </div>
+        {store.orders.map((order) => (
+          <OrderCard key={order.id} order={order} />
         ))}
       </div>
+
+      {store.totalPages > 1 ? (
+        <nav aria-label="Orders pagination" className="flex items-center justify-between text-sm text-slate-600">
+          <span>
+            Page {store.page + 1} of {store.totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" disabled={store.page === 0} onClick={() => void store.load(store.page - 1)}>
+              Previous
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={store.page + 1 >= store.totalPages}
+              onClick={() => void store.load(store.page + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </nav>
+      ) : null}
     </div>
   );
 });

@@ -1,6 +1,6 @@
 /** Locale-aware formatting helpers shared across MFEs. */
 
-export function formatCurrency(amount: number, currency = 'INR', locale = 'en-IN'): string {
+export function formatCurrency(amount: number, currency = 'EUR', locale = 'en-IN'): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -14,15 +14,15 @@ export function formatNumber(value: number, locale = 'en-US'): string {
   );
 }
 
-export function formatDateTime(timestamp: number, locale = 'en-US'): string {
+export function formatDateTime(timestamp: number | string, locale = 'en-US'): string {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(timestamp));
 }
 
-export function formatRelativeTime(timestamp: number, locale = 'en-US'): string {
-  const deltaSeconds = Math.round((timestamp - Date.now()) / 1000);
+export function formatRelativeTime(timestamp: number | string, locale = 'en-US'): string {
+  const deltaSeconds = Math.round((new Date(timestamp).getTime() - Date.now()) / 1000);
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
 
   const ranges: Array<[Intl.RelativeTimeFormatUnit, number]> = [

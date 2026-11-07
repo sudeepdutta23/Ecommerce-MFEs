@@ -1,19 +1,27 @@
 import { createAsyncThunk, createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { type SessionUser } from '@ecom/types';
 import {
-  clearSession,
+  apiErrorCode,
+  apiErrorMessage,
+  authApi,
+  endLocalSession,
   eventBus,
   getAuthToken,
-  getRefreshToken,
   getStoredUser,
+  mergeGuestCart,
+  profileApi,
+  refreshCart,
+  storeAccessToken,
   storeSession,
+  type Me,
 } from '@ecom/utils';
-import { apiErrorMessage, loginRequest, logoutRequest, meRequest, registerRequest, type AuthResult } from './auth.api';
 
 export interface AuthState {
   user: SessionUser | null;
   status: 'idle' | 'loading' | 'failed';
   error: string | null;
+  /** The backend's error code of the last failure, e.g. to offer a new verification email. */
+  errorCode: string | null;
 }
 
 const initialState: AuthState = {
@@ -21,6 +29,7 @@ const initialState: AuthState = {
   user: getStoredUser(),
   status: 'idle',
   error: null,
+  errorCode: null,
 };
 
 export interface LoginCredentials {
@@ -28,32 +37,61 @@ export interface LoginCredentials {
   password: string;
 }
 
-/** Persist the session for other MFEs / refreshes, then broadcast the transition. */
-function commitSession({ user, tokens }: AuthResult, analyticsEvent: string): SessionUser {
-  storeSession(tokens.accessToken, user, tokens.refreshToken);
-  eventBus.emit('auth:login', { user });
-  eventBus.emit('analytics:track', { name: analyticsEvent, source: 'auth-dashboard' });
-  return user;
+interface Rejection {
+  message: string;
+  code: string | null;
 }
 
-export const login = createAsyncThunk<SessionUser, LoginCredentials, { rejectValue: string }>(
+/** The account's display name comes from its profile; before one is saved, from the email. */
+async function toSessionUser(me: Me): Promise<SessionUser> {
+  const profile = await profileApi.get().catch(() => null);
+  const fullName = [profile?.givenName, profile?.familyName].filter(Boolean).join(' ');
+  return {
+    id: me.id,
+    name: fullName || (me.email.split('@')[0] ?? me.email),
+    email: me.email,
+    role: me.roles.includes('ADMIN') ? 'admin' : 'customer',
+    roles: me.roles,
+    permissions: me.permissions,
+  };
+}
+
+export const login = createAsyncThunk<SessionUser, LoginCredentials, { rejectValue: Rejection }>(
   'auth/login',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      return commitSession(await loginRequest(email, password), 'login');
+      const { accessToken } = await authApi.login(email, password);
+      storeAccessToken(accessToken);
+      const user = await toSessionUser(await authApi.me());
+      storeSession(accessToken, user);
+      await mergeGuestCart().catch(() => undefined);
+      eventBus.emit('auth:login', { user });
+      eventBus.emit('analytics:track', { name: 'login', source: 'auth-dashboard' });
+      return user;
     } catch (error) {
-      return rejectWithValue(apiErrorMessage(error, 'Login failed. Please try again.'));
+      return rejectWithValue({
+        message: apiErrorMessage(error, 'Login failed. Please try again.'),
+        code: apiErrorCode(error) ?? null,
+      });
     }
   },
 );
 
-export const register = createAsyncThunk<SessionUser, LoginCredentials, { rejectValue: string }>(
+/**
+ * Registration signs nobody in: the account stays pending until the emailed link is used. The answer
+ * is the same for a new and an existing address, so it cannot reveal who has an account.
+ */
+export const register = createAsyncThunk<void, LoginCredentials, { rejectValue: Rejection }>(
   'auth/register',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      return commitSession(await registerRequest(email, password), 'register');
+      await authApi.register(email, password);
+      eventBus.emit('analytics:track', { name: 'register', source: 'auth-dashboard' });
     } catch (error) {
-      return rejectWithValue(apiErrorMessage(error, 'Registration failed. Please try again.'));
+      return rejectWithValue({
+        message: apiErrorMessage(error, 'Registration failed. Please try again.'),
+        code: apiErrorCode(error) ?? null,
+      });
     }
   },
 );
@@ -64,27 +102,23 @@ export const register = createAsyncThunk<SessionUser, LoginCredentials, { reject
  * fails too, the interceptor clears the session and broadcasts auth:logout.
  */
 export const syncSession = createAsyncThunk<SessionUser | null>('auth/syncSession', async () => {
-  if (!getAuthToken()) return null;
-  const user = await meRequest();
   const token = getAuthToken();
-  if (token) {
-    storeSession(token, user);
-  }
+  if (!token) return null;
+  const user = await toSessionUser(await authApi.me());
+  const current = getAuthToken();
+  if (current) storeSession(current, user);
+  await refreshCart().catch(() => undefined);
   return user;
 });
 
 /** Revoke the refresh token server-side (best effort), then clear locally. */
 export const logout = createAsyncThunk<void>('auth/logout', async () => {
-  const refreshToken = getRefreshToken();
-  if (refreshToken) {
-    try {
-      await logoutRequest(refreshToken);
-    } catch {
-      // Revocation is best-effort — the local session is cleared regardless.
-    }
+  try {
+    await authApi.logout();
+  } catch {
+    // Revocation is best-effort: the local session is cleared regardless.
   }
-  clearSession();
-  eventBus.emit('auth:logout');
+  endLocalSession();
   eventBus.emit('analytics:track', { name: 'logout', source: 'auth-dashboard' });
 });
 
@@ -94,6 +128,11 @@ const authSlice = createSlice({
   reducers: {
     clearError(state) {
       state.error = null;
+      state.errorCode = null;
+    },
+    /** The session ended elsewhere: erased or deactivated account, or the interceptor's forced sign-out. */
+    sessionEnded(state) {
+      state.user = null;
     },
   },
   extraReducers: (builder) => {
@@ -110,20 +149,25 @@ const authSlice = createSlice({
         // The interceptor may have cleared the session (expired refresh token).
         state.user = getStoredUser();
       })
-      .addMatcher(isAnyOf(login.pending, register.pending), (state) => {
-        state.status = 'loading';
-        state.error = null;
-      })
-      .addMatcher(isAnyOf(login.fulfilled, register.fulfilled), (state, action) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.status = 'idle';
         state.user = action.payload;
       })
+      .addCase(register.fulfilled, (state) => {
+        state.status = 'idle';
+      })
+      .addMatcher(isAnyOf(login.pending, register.pending), (state) => {
+        state.status = 'loading';
+        state.error = null;
+        state.errorCode = null;
+      })
       .addMatcher(isAnyOf(login.rejected, register.rejected), (state, action) => {
         state.status = 'failed';
-        state.error = action.payload ?? 'Something went wrong. Please try again.';
+        state.error = action.payload?.message ?? 'Something went wrong. Please try again.';
+        state.errorCode = action.payload?.code ?? null;
       });
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, sessionEnded } = authSlice.actions;
 export const authReducer = authSlice.reducer;

@@ -123,6 +123,9 @@ module.exports = function createMfeConfig({ name, appDir, port, exposes = {}, ex
       new HtmlWebpackPlugin({
         template: path.join(appDir, 'public', 'index.html'),
         title: pkg.name,
+        // Absolute, or a page opened directly at a nested URL (a refresh, an emailed link) asks for
+        // /account/static/js/main.js and gets index.html back. Chunks keep publicPath: 'auto' above.
+        publicPath: '/',
       }),
       // Replace the whole `process.env` expression (not individual keys) so a
       // variable that is NOT set reads as `undefined` in the browser and code

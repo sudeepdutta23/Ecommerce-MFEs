@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { cn, Button, Card, CardBody, Spinner, TextInput } from '@ecom/ui';
+import { Link, useNavigate } from 'react-router-dom';
+import { cn, Button, Card, CardBody, Notice, Spinner, TextInput } from '@ecom/ui';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { clearError, login, register } from './auth.slice';
+import { ResendVerification } from './PublicPages';
 
 type Mode = 'signin' | 'register';
 
@@ -29,7 +30,8 @@ const MODE_COPY: Record<
 export function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { status, error } = useAppSelector((state) => state.auth);
+  const { status, error, errorCode } = useAppSelector((state) => state.auth);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
@@ -43,12 +45,38 @@ export function LoginPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const action = mode === 'signin' ? login : register;
-    const result = await dispatch(action({ email, password }));
-    if (action.fulfilled.match(result)) {
+    if (mode === 'register') {
+      const result = await dispatch(register({ email, password }));
+      if (register.fulfilled.match(result)) {
+        setRegisteredEmail(email);
+        setPassword('');
+      }
+      return;
+    }
+    const result = await dispatch(login({ email, password }));
+    if (login.fulfilled.match(result)) {
       navigate('..');
     }
   };
+
+  if (registeredEmail) {
+    return (
+      <div className="mx-auto max-w-md animate-fade-in-up">
+        <Card>
+          <CardBody className="space-y-4 px-6 py-6">
+            <h1 className="text-xl font-bold text-slate-900">Check your inbox</h1>
+            <Notice tone="success">
+              We sent a confirmation link to {registeredEmail}. Open it to activate your account, then sign in.
+            </Notice>
+            <ResendVerification initialEmail={registeredEmail} />
+            <Button variant="ghost" className="w-full" onClick={() => setRegisteredEmail('')}>
+              Back to sign in
+            </Button>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-md animate-fade-in-up">
@@ -112,7 +140,7 @@ export function LoginPage() {
               />
               {mode === 'register' && !error ? (
                 <p className="mt-1.5 text-xs text-slate-400">
-                  At least 8 characters, with a letter and a digit.
+                  At least 12 characters, not your email and not a common password.
                 </p>
               ) : null}
             </div>
@@ -128,10 +156,17 @@ export function LoginPage() {
                 )}
               </Button>
             </div>
-            <p className="text-center text-xs text-slate-400">
-              Seeded demo account: user@example.com / User1234!
-            </p>
+            {mode === 'signin' ? (
+              <Link to="../forgot-password" className="block text-center text-sm font-semibold text-brand-600">
+                Forgot your password?
+              </Link>
+            ) : null}
           </form>
+          {errorCode === 'AUTH_EMAIL_NOT_VERIFIED' ? (
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <ResendVerification initialEmail={email} />
+            </div>
+          ) : null}
         </CardBody>
       </Card>
     </div>

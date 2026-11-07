@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { OrdersProvider } from '@/features/orders/OrdersProvider';
+import { OrderDetailPage } from '@/features/orders/OrderDetailPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 import './styles/index.css';
 
@@ -12,6 +13,7 @@ export default function App() {
     <OrdersProvider>
       <Routes>
         <Route index element={<OrdersPage />} />
+        <Route path=":orderId" element={<OrderDetailPage />} />
       </Routes>
     </OrdersProvider>
   );

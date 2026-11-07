@@ -1,25 +1,26 @@
 import axios, { type AxiosError, type AxiosInstance, type AxiosResponse } from 'axios';
-import { clearSession, getAuthToken, getRefreshToken, storeTokens } from './auth-session';
+import { clearSession, getAuthToken, storeAccessToken } from './auth-session';
+import { saveCartItems } from './cart-storage';
 import { eventBus } from './event-bus';
 import { ApiError } from './api-client';
 
 /**
- * Shared axios client for all microservice requests (via the API gateway).
+ * Shared axios client for all backend requests.
  *
  * Every instance created here carries the same interceptor stack:
  *
  * Request:
  *  1. Injects `Authorization: Bearer <token>` from the shared auth session.
- *  2. Assigns an `x-correlation-id` (the backend propagates it across
- *     services, queues, and log lines — see Ecommerce-Microservices README).
+ *  2. Assigns an `X-Request-Id`: the backend logs it on every line and returns it in every response
+ *     and error, so a failure seen here can be found in the server's logs.
  *  3. Stamps a start time for latency measurement.
  *
  * Response:
  *  4. Emits `analytics:track` (`api_request` / `api_request_failed`) with
  *     method, URL, status, duration, and correlation id.
  *  5. Retries idempotent GETs once on transient failures (network, 429/5xx).
- *  6. On 401, transparently refreshes the token pair (single-flight, using
- *     the rotating refresh token from POST /auth/refresh) and replays the
+ *  6. On 401, transparently gets a new access token (single-flight, with the
+ *     rotating HttpOnly refresh cookie, POST /auth/refresh) and replays the
  *     request; if refresh fails, clears the shared session and broadcasts
  *     `auth:logout` so the shell and every MFE sign out together.
  *  7. Normalizes all failures into the existing ApiError shape.
@@ -38,8 +39,8 @@ declare module 'axios' {
   }
 }
 
-/** API gateway base URL: per-environment via API_GATEWAY_URL (inlined at build time). */
-const DEFAULT_BASE_URL = process.env.API_GATEWAY_URL ?? 'http://localhost:8080/api/v1';
+/** Backend base URL: per-environment via API_GATEWAY_URL (inlined at build time). */
+export const API_BASE_URL = process.env.API_GATEWAY_URL ?? 'http://localhost:8080/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
 const RETRY_DELAY_MS = 400;
 const RETRYABLE_STATUS = new Set([429, 502, 503, 504]);
@@ -49,25 +50,45 @@ const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth
 
 let refreshInFlight: Promise<string | null> | null = null;
 
+/** Local sign-out, everywhere at once. The cart copy goes too: it mirrors this account's server cart. */
+export function endLocalSession(): void {
+  clearSession();
+  saveCartItems([]);
+  eventBus.emit('auth:logout');
+  eventBus.emit('cart:changed', { count: 0 });
+}
+
+async function requestNewAccessToken(baseUrl: string): Promise<string | null> {
+  try {
+    const response = await axios.post<{ data?: { accessToken?: string } }>(`${baseUrl}/auth/refresh`, undefined, {
+      timeout: REQUEST_TIMEOUT_MS,
+      withCredentials: true,
+    });
+    const accessToken = response.data.data?.accessToken;
+    if (!accessToken) return null;
+    storeAccessToken(accessToken);
+    return accessToken;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Rotate the token pair via POST /auth/refresh. Single-flight: concurrent
- * 401s share one refresh call. Uses a bare axios request so the interceptor
- * stack (and its 401 handling) cannot recurse.
+ * Get a new access token with the refresh cookie (HttpOnly: JavaScript never sees it). Uses a bare
+ * axios request so the interceptor stack (and its 401 handling) cannot recurse.
+ *
+ * Single-flight across tabs, not only in this one: the backend rotates the refresh token on every use
+ * and treats a reused one as theft, ending the whole session. Two tabs refreshing together would sign
+ * the user out, so they queue on a Web Lock, and a tab that waited uses the token the other one got.
  */
-function refreshAccessToken(baseUrl: string): Promise<string | null> {
+function refreshAccessToken(baseUrl: string, expiredToken: string | null): Promise<string | null> {
   refreshInFlight ??= (async () => {
     try {
-      const refreshToken = getRefreshToken();
-      if (!refreshToken) return null;
-      const response = await axios.post<{
-        data?: { tokens?: { accessToken: string; refreshToken: string } };
-      }>(`${baseUrl}/auth/refresh`, { refreshToken }, { timeout: REQUEST_TIMEOUT_MS });
-      const tokens = response.data.data?.tokens;
-      if (!tokens?.accessToken) return null;
-      storeTokens(tokens.accessToken, tokens.refreshToken);
-      return tokens.accessToken;
-    } catch {
-      return null;
+      const refresh = () => {
+        const current = getAuthToken();
+        return current && current !== expiredToken ? Promise.resolve(current) : requestNewAccessToken(baseUrl);
+      };
+      return await (navigator.locks ? navigator.locks.request('ecom.auth.refresh', refresh) : refresh());
     } finally {
       refreshInFlight = null;
     }
@@ -108,7 +129,7 @@ export function attachInterceptors(instance: AxiosInstance): AxiosInstance {
     }
 
     const correlationId = crypto.randomUUID();
-    config.headers.set('x-correlation-id', correlationId);
+    config.headers.set('X-Request-Id', correlationId);
     config.metadata = { startedAt: performance.now(), correlationId };
 
     return config;
@@ -136,15 +157,15 @@ export function attachInterceptors(instance: AxiosInstance): AxiosInstance {
       const isAuthEndpoint = AUTH_ENDPOINTS.some((path) => config?.url?.includes(path));
       if (status === 401 && config && !isAuthEndpoint) {
         if (!config.authRetried) {
-          const newToken = await refreshAccessToken(config.baseURL ?? DEFAULT_BASE_URL);
+          const expired = String(config.headers.get('Authorization') ?? '').replace('Bearer ', '');
+          const newToken = await refreshAccessToken(config.baseURL ?? API_BASE_URL, expired || null);
           if (newToken !== null) {
             config.authRetried = true;
             return instance.request(config);
           }
         }
         // Refresh impossible/failed: reset shared auth state everywhere at once.
-        clearSession();
-        eventBus.emit('auth:logout');
+        endLocalSession();
       }
 
       if (config) {
@@ -163,26 +184,25 @@ export function attachInterceptors(instance: AxiosInstance): AxiosInstance {
 }
 
 export interface HttpClientOptions {
-  /** API gateway base URL; override per environment. */
+  /** Backend base URL; override per environment. */
   baseUrl?: string;
   timeoutMs?: number;
 }
 
 /** Create an axios instance pre-wired with the shared interceptor stack. */
 export function createHttpClient({
-  baseUrl = DEFAULT_BASE_URL,
+  baseUrl = API_BASE_URL,
   timeoutMs = REQUEST_TIMEOUT_MS,
 }: HttpClientOptions = {}): AxiosInstance {
   const instance = axios.create({
     baseURL: baseUrl,
     timeout: timeoutMs,
+    // The refresh cookie is scoped to /api/v1/auth and only travels on credentialed requests.
+    withCredentials: true,
     headers: { 'Content-Type': 'application/json' },
   });
   return attachInterceptors(instance);
 }
 
-/**
- * The default client for the local API gateway — import and call directly:
- * `http.get('/catalog/products')`, `http.post('/orders', body)`, …
- */
+/** The default client for the backend. Typed functions for every endpoint: backend-api.ts. */
 export const http = createHttpClient();

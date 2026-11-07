@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useSearchParams } from 'react-router-dom';
+import { type StorefrontSort } from '@ecom/utils';
 import { Badge, Button, SectionHeader, cn } from '@ecom/ui';
 import { useCatalogStore } from './CatalogProvider';
 import { ProductCard } from './ProductCard';
@@ -18,6 +19,19 @@ function SkeletonCard() {
     </div>
   );
 }
+
+/** At most seven numbered buttons around the current page: a large catalogue has thousands of pages. */
+function pageNumbers(current: number, total: number): number[] {
+  const first = Math.max(1, Math.min(current - 3, total - 6));
+  return Array.from({ length: Math.min(7, total) }, (_, i) => first + i);
+}
+
+const SORT_OPTIONS: Array<{ value: StorefrontSort | ''; label: string }> = [
+  { value: '', label: 'Best match' },
+  { value: 'NEWEST', label: 'Newest' },
+  { value: 'PRICE_ASC', label: 'Price: low to high' },
+  { value: 'PRICE_DESC', label: 'Price: high to low' },
+];
 
 const Pagination = observer(function Pagination() {
   const store = useCatalogStore();
@@ -53,7 +67,7 @@ const Pagination = observer(function Pagination() {
         >
           ‹ Prev
         </button>
-        {Array.from({ length: store.totalPages }, (_, i) => i + 1).map((page) => (
+        {pageNumbers(store.page, store.totalPages).map((page) => (
           <button
             key={page}
             type="button"
@@ -88,23 +102,16 @@ export const CatalogPage = observer(function CatalogPage() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    void store.ensureProductsLoaded();
+    void store.loadCategories();
   }, [store]);
 
   // URL params are the contract between the shell and this MFE: the shell's
-  // header search and category pills navigate to /catalog?q=…&category=….
+  // header search and category pills navigate to /catalog?q=…&category=<slug>.
   useEffect(() => {
-    const query = searchParams.get('q');
-    if (query !== null) {
-      store.setQuery(query);
-    }
-    const category = searchParams.get('category');
-    if (category !== null) {
-      store.setCategory(store.categories.includes(category) ? category : 'all');
-    }
-  }, [searchParams, store, store.products.length]);
+    store.applyUrlFilters(searchParams.get('q'), searchParams.get('category'));
+  }, [searchParams, store]);
 
-  if (store.status === 'loading') {
+  if (store.status === 'loading' && store.products.length === 0) {
     return (
       <div className="animate-fade-in space-y-6">
         <div className="h-8 w-72 animate-pulse rounded bg-slate-100" />
@@ -123,7 +130,7 @@ export const CatalogPage = observer(function CatalogPage() {
         <span className="animate-wiggle text-4xl" aria-hidden>
           ⚠️
         </span>
-        <p className="text-slate-600">Could not load the catalog.</p>
+        <p className="text-slate-600">{store.errorMessage}</p>
         <Button variant="secondary" onClick={() => void store.loadProducts()}>
           Retry
         </Button>
@@ -138,9 +145,7 @@ export const CatalogPage = observer(function CatalogPage() {
           title={
             <>
               Grab the best deal on{' '}
-              <span className="text-brand-500">
-                {store.category === 'all' ? 'Everything' : store.category}
-              </span>
+              <span className="text-brand-500">{store.categoryName}</span>
             </>
           }
           action={
@@ -161,24 +166,73 @@ export const CatalogPage = observer(function CatalogPage() {
           className="w-64 rounded-lg border-0 bg-surface-sunken px-4 py-2.5 text-sm text-slate-700 transition-all duration-300 placeholder:text-slate-400 focus:w-80 focus:shadow-glow focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
-          {store.categories.map((category) => (
+          {[{ slug: 'all', name: 'All' }, ...store.categories].map((category) => (
             <button
-              key={category}
-              onClick={() => store.setCategory(category)}
+              key={category.slug}
+              onClick={() => store.setCategory(category.slug)}
               className={cn(
                 'rounded-full px-4 py-2 text-sm capitalize transition-all duration-200 ease-out active:scale-95',
-                store.category === category
+                store.category === category.slug
                   ? 'scale-105 bg-brand-500 font-medium text-white shadow-md'
                   : 'bg-surface-sunken text-slate-700 hover:-translate-y-0.5 hover:bg-brand-50 hover:shadow-sm',
               )}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>
       </div>
 
-      {store.filteredProducts.length === 0 ? (
+      <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+        <select
+          value={store.sort}
+          onChange={(event) => store.setSort(event.target.value as StorefrontSort | '')}
+          aria-label="Sort products"
+          className="rounded-lg border-0 bg-surface-sunken px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={store.minPrice}
+          onChange={(event) => store.setPriceRange(event.target.value, store.maxPrice)}
+          placeholder="Min price"
+          aria-label="Lowest price"
+          className="w-28 rounded-lg border-0 bg-surface-sunken px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={store.maxPrice}
+          onChange={(event) => store.setPriceRange(store.minPrice, event.target.value)}
+          placeholder="Max price"
+          aria-label="Highest price"
+          className="w-28 rounded-lg border-0 bg-surface-sunken px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={store.inStockOnly}
+            onChange={(event) => store.setInStockOnly(event.target.checked)}
+          />
+          In stock only
+        </label>
+      </div>
+
+      {store.cartError ? (
+        <p role="alert" className="text-sm text-negative">
+          {store.cartError}
+        </p>
+      ) : null}
+
+      {store.products.length === 0 ? (
         <div className="animate-fade-in-up py-12 text-center">
           <span className="mb-3 inline-block animate-float text-5xl" aria-hidden>
             🔍
@@ -188,10 +242,7 @@ export const CatalogPage = observer(function CatalogPage() {
             variant="ghost"
             size="sm"
             className="mt-3"
-            onClick={() => {
-              store.setQuery('');
-              store.setCategory('all');
-            }}
+            onClick={() => store.clearFilters()}
           >
             Clear filters
           </Button>
@@ -199,7 +250,7 @@ export const CatalogPage = observer(function CatalogPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {store.pagedProducts.map((product, i) => (
+            {store.products.map((product, i) => (
               <div
                 key={product.id}
                 className="animate-fade-in-up"

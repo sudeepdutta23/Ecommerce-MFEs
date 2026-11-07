@@ -5,6 +5,10 @@ export interface SessionUser {
   name: string;
   email: string;
   role: 'admin' | 'customer';
+  /** Role codes from the backend, e.g. CUSTOMER, ADMIN. */
+  roles?: string[];
+  /** Permission codes from the backend, e.g. user:read. Controls hide what these do not allow. */
+  permissions?: string[];
 }
 
 export interface Product {
@@ -15,8 +19,12 @@ export interface Product {
   /** Strike-through list price; when set, cards show the discount and savings. */
   mrp?: number;
   currency: string;
+  /** Category display name; empty when the product has none. */
   category: string;
-  rating: number;
+  categorySlug?: string;
+  sellerName?: string;
+  /** The backend has no ratings yet; the UI hides them when absent. */
+  rating?: number;
   inStock: boolean;
   /** Primary product photo; consumers fall back to a placeholder when absent. */
   imageUrl?: string;
@@ -28,31 +36,22 @@ export interface Product {
   specs?: Record<string, string>;
 }
 
-/** A line in the shared cart (persisted via @ecom/utils cart-storage). */
+/** A line in the shared cart (a guest's own, or a copy of the signed-in customer's server cart). */
 export interface CartItem {
   productId: string;
   name: string;
   price: number;
-  /** Strike-through list price, when discounted — enables savings math. */
+  /** Strike-through list price, when discounted. The backend has none yet. */
   mrp?: number;
   currency: string;
   quantity: number;
   imageUrl?: string;
+  sellerName?: string;
+  /** Why this line cannot be bought right now. */
+  problem?: 'NOT_ON_SALE' | 'NOT_ENOUGH_STOCK' | null;
 }
 
-export type OrderStatus = 'processing' | 'shipped' | 'delivered';
-
-/** A placed order (persisted via @ecom/utils order-storage). */
-export interface Order {
-  id: string;
-  items: CartItem[];
-  subtotal: number;
-  savings: number;
-  currency: string;
-  /** Epoch ms when the order was placed. */
-  placedAt: number;
-  status: OrderStatus;
-}
+export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 export interface TrackedEvent {
   id: string;

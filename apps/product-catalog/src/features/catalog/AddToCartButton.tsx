@@ -20,8 +20,8 @@ export const AddToCartButton = observer(function AddToCartButton({
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
-  const handleAdd = () => {
-    store.addToCart(product);
+  const handleAdd = async () => {
+    if (!(await store.addToCart(product))) return;
     setJustAdded(true);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setJustAdded(false), ADDED_FEEDBACK_MS);
@@ -30,7 +30,7 @@ export const AddToCartButton = observer(function AddToCartButton({
   return (
     <Button
       className={cn(justAdded && 'animate-pop !bg-positive hover:!bg-positive', className)}
-      onClick={handleAdd}
+      onClick={() => void handleAdd()}
       {...rest}
     >
       {justAdded ? '✓ Added to cart' : 'Add to cart'}

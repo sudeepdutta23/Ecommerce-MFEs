@@ -1,9 +1,16 @@
+import { useState, type FormEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Link } from 'react-router-dom';
 import { type CartItem } from '@ecom/types';
-import { Badge, Button, ImageWithFallback, SectionHeader, cn } from '@ecom/ui';
+import { Badge, Button, ImageWithFallback, SectionHeader, TextInput, cn } from '@ecom/ui';
 import { formatCurrency } from '@ecom/utils';
 import { useCartStore } from './CartProvider';
+import { DECLINING_TOKEN } from './cart.store';
+
+const PROBLEM_TEXT = {
+  NOT_ON_SALE: 'No longer on sale',
+  NOT_ENOUGH_STOCK: 'Not enough left in stock',
+};
 
 const CartItemRow = observer(function CartItemRow({ item }: { item: CartItem }) {
   const store = useCartStore();
@@ -31,6 +38,12 @@ const CartItemRow = observer(function CartItemRow({ item }: { item: CartItem }) 
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-slate-900">{item.name}</p>
+        {item.sellerName ? <p className="text-xs text-slate-500">Sold by {item.sellerName}</p> : null}
+        {item.problem ? (
+          <Badge tone="negative" className="mt-1">
+            {PROBLEM_TEXT[item.problem]}
+          </Badge>
+        ) : null}
         <div className="mt-1 flex items-baseline gap-2">
           <span className="text-base font-bold text-slate-900">
             {formatCurrency(item.price, item.currency)}
@@ -77,7 +90,7 @@ const CartItemRow = observer(function CartItemRow({ item }: { item: CartItem }) 
         </div>
         <button
           type="button"
-          onClick={() => store.remove(item.productId)}
+          onClick={() => void store.remove(item.productId)}
           className="text-xs font-medium text-slate-400 transition-colors hover:text-negative"
         >
           Remove
@@ -94,50 +107,200 @@ const OrderSummary = observer(function OrderSummary() {
     <aside className="h-fit rounded-card border border-slate-200 bg-surface p-6 shadow-card">
       <h2 className="text-base font-semibold text-slate-900">Order Summary</h2>
       <dl className="mt-4 space-y-3 text-sm">
-        <div className="flex justify-between text-slate-600">
-          <dt>
-            Subtotal ({store.totalQuantity} item{store.totalQuantity === 1 ? '' : 's'})
-          </dt>
-          <dd className="font-medium text-slate-900">
-            {formatCurrency(store.subtotal, store.currency)}
-          </dd>
-        </div>
-        {store.savings > 0 ? (
-          <div className="flex justify-between text-slate-600">
-            <dt>Savings</dt>
-            <dd className="font-medium text-positive">
-              − {formatCurrency(store.savings, store.currency)}
-            </dd>
-          </div>
-        ) : null}
-        <div className="flex justify-between text-slate-600">
-          <dt>Delivery</dt>
-          <dd className="font-medium text-positive">FREE</dd>
-        </div>
         <div className="flex justify-between border-t border-slate-100 pt-3 text-base font-bold text-slate-900">
-          <dt>Total</dt>
+          <dt>
+            Total ({store.totalQuantity} item{store.totalQuantity === 1 ? '' : 's'})
+          </dt>
           <dd>{formatCurrency(store.subtotal, store.currency)}</dd>
         </div>
       </dl>
-      <Button
-        size="lg"
-        className="mt-5 w-full"
-        disabled={store.checkoutState === 'placing'}
-        onClick={() => void store.placeOrder()}
-      >
-        {store.checkoutState === 'placing' ? 'Placing order…' : 'Proceed to Checkout'}
-      </Button>
-      <p className="mt-3 text-center text-xs text-slate-400">
-        🔒 Secure checkout · 7-day replacement
-      </p>
+      {store.signedIn ? (
+        <Button
+          size="lg"
+          className="mt-5 w-full"
+          disabled={!store.readyForCheckout || store.loading}
+          onClick={() => void store.startCheckout()}
+        >
+          Proceed to Checkout
+        </Button>
+      ) : (
+        <Link to="/account/login" className="mt-5 block">
+          <Button size="lg" className="w-full">
+            Sign in to check out
+          </Button>
+        </Link>
+      )}
+      {store.signedIn && !store.readyForCheckout && !store.loading ? (
+        <p className="mt-3 text-center text-xs text-slate-500">Fix or remove the marked lines to check out.</p>
+      ) : null}
+      {!store.signedIn ? (
+        <p className="mt-3 text-center text-xs text-slate-500">Your cart moves to your account when you sign in.</p>
+      ) : null}
     </aside>
+  );
+});
+
+const EMPTY_ADDRESS = { recipientName: '', line1: '', city: '', postalCode: '', countryCode: '' };
+
+const AddressForm = observer(function AddressForm({ onDone }: { onDone: () => void }) {
+  const store = useCartStore();
+  const [form, setForm] = useState(EMPTY_ADDRESS);
+  const field = (name: keyof typeof EMPTY_ADDRESS, label: string) => (
+    <TextInput
+      label={label}
+      value={form[name]}
+      onChange={(event) => setForm({ ...form, [name]: event.target.value })}
+      required
+    />
+  );
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (await store.addAddress({ ...form, countryCode: form.countryCode.toUpperCase() })) onDone();
+  };
+
+  return (
+    <form onSubmit={(event) => void submit(event)} className="grid gap-3 rounded-lg bg-surface-sunken p-4 sm:grid-cols-2">
+      {field('recipientName', 'Recipient')}
+      {field('line1', 'Street and number')}
+      {field('city', 'City')}
+      {field('postalCode', 'Postal code')}
+      {field('countryCode', 'Country code (e.g. DE)')}
+      <div className="flex items-end">
+        <Button type="submit">Save address</Button>
+      </div>
+    </form>
+  );
+});
+
+const AddressStep = observer(function AddressStep() {
+  const store = useCartStore();
+  const [adding, setAdding] = useState(store.addresses.length === 0);
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-5">
+      <SectionHeader
+        title={
+          <>
+            Where should it <span className="text-brand-500">go?</span>
+          </>
+        }
+      />
+      <div className="space-y-2" role="radiogroup" aria-label="Shipping address">
+        {store.addresses.map((address) => (
+          <label
+            key={address.id}
+            className="flex cursor-pointer items-start gap-3 rounded-card border border-slate-200 bg-surface p-4 text-sm"
+          >
+            <input
+              type="radio"
+              name="address"
+              checked={store.selectedAddressId === address.id}
+              onChange={() => store.selectAddress(address.id)}
+              className="mt-1"
+            />
+            <span>
+              <b className="font-semibold text-slate-900">{address.recipientName}</b>
+              <br />
+              {address.line1}, {address.postalCode} {address.city}, {address.countryCode}
+            </span>
+          </label>
+        ))}
+      </div>
+      {adding ? (
+        <AddressForm onDone={() => setAdding(false)} />
+      ) : (
+        <Button variant="ghost" size="sm" onClick={() => setAdding(true)}>
+          + Add an address
+        </Button>
+      )}
+      <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+        <p className="text-base font-bold text-slate-900">{formatCurrency(store.subtotal, store.currency)}</p>
+        <Button disabled={!store.selectedAddressId || store.busy} onClick={() => void store.placeOrder()}>
+          {store.busy ? 'Placing order…' : 'Place order'}
+        </Button>
+      </div>
+    </div>
+  );
+});
+
+const PaymentStep = observer(function PaymentStep() {
+  const store = useCartStore();
+  const [token, setToken] = useState('tok_visa');
+  const checkout = store.checkout;
+  if (!checkout) return null;
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-5">
+      <SectionHeader
+        title={
+          <>
+            Pay for your <span className="text-brand-500">order</span>
+          </>
+        }
+      />
+      <ul className="divide-y divide-slate-100 rounded-card border border-slate-200 bg-surface px-4 text-sm">
+        {checkout.orders.map((order) => (
+          <li key={order.id} className="flex justify-between py-3">
+            <span>{order.sellerName}</span>
+            <span className="font-semibold">{formatCurrency(order.total, order.currency)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="rounded-card border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <p className="font-semibold">Test mode: the backend has no real payment provider yet, and nothing is charged.</p>
+        <div className="mt-2 flex flex-col gap-1">
+          <label className="flex items-center gap-2">
+            <input type="radio" checked={token === 'tok_visa'} onChange={() => setToken('tok_visa')} />
+            Test card that is approved
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" checked={token === DECLINING_TOKEN} onChange={() => setToken(DECLINING_TOKEN)} />
+            Test card that is declined
+          </label>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <p className="text-base font-bold text-slate-900">{formatCurrency(checkout.total, checkout.currency)}</p>
+        <Button disabled={store.busy} onClick={() => void store.pay(token)}>
+          {store.busy ? 'Paying…' : 'Pay now'}
+        </Button>
+      </div>
+      <p className="text-center text-xs text-slate-500">
+        Unpaid orders are cancelled after 30 minutes, and the items go back on sale.
+      </p>
+    </div>
   );
 });
 
 export const CartPage = observer(function CartPage() {
   const store = useCartStore();
 
-  if (store.checkoutState === 'placed') {
+  const error = store.error ? (
+    <p role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-negative">
+      {store.error}
+    </p>
+  ) : null;
+
+  if (store.step === 'address') {
+    return (
+      <>
+        {error}
+        <AddressStep />
+      </>
+    );
+  }
+
+  if (store.step === 'payment') {
+    return (
+      <>
+        {error}
+        <PaymentStep />
+      </>
+    );
+  }
+
+  if (store.step === 'placed') {
     return (
       <div className="flex min-h-[50vh] animate-fade-in-up flex-col items-center justify-center gap-4 text-center">
         <span className="animate-pop text-6xl" aria-hidden>
@@ -182,6 +345,7 @@ export const CartPage = observer(function CartPage() {
 
   return (
     <div className="space-y-6">
+      {error}
       <div className="animate-fade-in-down">
         <SectionHeader
           title={
@@ -218,7 +382,7 @@ export const CartPage = observer(function CartPage() {
             </Link>
             <button
               type="button"
-              onClick={() => store.clear()}
+              onClick={() => void store.clear()}
               className={cn(
                 'text-sm font-medium text-slate-400 transition-colors hover:text-negative',
               )}

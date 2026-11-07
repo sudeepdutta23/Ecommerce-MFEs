@@ -2,8 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAdmin } from '@/features/admin/RequireAdmin';
 import { AdminLayout } from '@/features/admin/AdminLayout';
 import { OverviewPage } from '@/features/admin/pages/OverviewPage';
-import { OrdersPage } from '@/features/admin/pages/OrdersPage';
-import { ProductsPage } from '@/features/admin/pages/ProductsPage';
+import { UsersPage } from '@/features/admin/pages/UsersPage';
+import { OrganizationsPage } from '@/features/admin/pages/OrganizationsPage';
+import { CategoriesPage } from '@/features/admin/pages/CategoriesPage';
+import { RolesPage } from '@/features/admin/pages/RolesPage';
 import { AuditPage } from '@/features/admin/pages/AuditPage';
 import './styles/index.css';
 
@@ -18,8 +20,10 @@ export default function App() {
       <Routes>
         <Route element={<AdminLayout />}>
           <Route index element={<OverviewPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="products" element={<ProductsPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="organizations" element={<OrganizationsPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="roles" element={<RolesPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="*" element={<Navigate to="." replace />} />
         </Route>

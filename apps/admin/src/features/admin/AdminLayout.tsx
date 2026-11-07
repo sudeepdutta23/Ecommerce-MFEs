@@ -1,10 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Badge, cn } from '@ecom/ui';
 import { useAdminSession } from './useAdminSession';
-import { useOrdersSync } from './admin.store';
 import {
   ExternalLinkIcon,
   GaugeIcon,
+  InboxIcon,
   PackageIcon,
   ScrollIcon,
   ShieldIcon,
@@ -13,8 +13,10 @@ import {
 
 const NAV = [
   { to: '.', end: true, label: 'Overview', Icon: GaugeIcon },
-  { to: 'orders', end: false, label: 'Orders', Icon: PackageIcon },
-  { to: 'products', end: false, label: 'Products', Icon: TagIcon },
+  { to: 'users', end: false, label: 'Users', Icon: InboxIcon },
+  { to: 'organizations', end: false, label: 'Shops', Icon: PackageIcon },
+  { to: 'categories', end: false, label: 'Categories', Icon: TagIcon },
+  { to: 'roles', end: false, label: 'Roles', Icon: ShieldIcon },
   { to: 'audit', end: false, label: 'Audit log', Icon: ScrollIcon },
 ];
 
@@ -35,12 +37,10 @@ function BrandMark({ subtitle }: { subtitle: string }) {
 /**
  * Full-viewport console chrome. The console is its own platform — it renders
  * without the storefront header/footer, so this layout owns everything:
- * a dark side rail (top bar with tabs on small screens), the content column,
- * and the storage/event-bus sync that keeps every page's order data live.
+ * a dark side rail (top bar with tabs on small screens) and the content column.
  */
 export function AdminLayout() {
   const user = useAdminSession();
-  useOrdersSync();
 
   return (
     <div className="flex min-h-screen bg-surface-muted font-sans text-slate-900 animate-fade-in">
@@ -92,7 +92,7 @@ export function AdminLayout() {
               <BrandMark subtitle="Admin console" />
             </div>
             <p className="hidden text-sm text-slate-500 lg:block">
-              Operations console — live orders, catalog and audit trail
+              Operations console: accounts, shops, categories, roles and the audit log
             </p>
 
             {user ? (

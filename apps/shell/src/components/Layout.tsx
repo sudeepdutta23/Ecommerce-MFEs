@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { eventBus, getCartCount } from '@ecom/utils';
+import { catalogApi, eventBus, getCartCount, notificationsApi, refreshCart } from '@ecom/utils';
 import { cn } from '@ecom/ui';
 import { useSession } from '@/session/useSession';
 import {
@@ -24,19 +24,37 @@ import {
 } from './icons';
 
 /**
- * Category pills in the header nav. Each maps to a catalog category via URL
- * params — the shell never talks to the catalog MFE directly.
+ * Category pills in the header nav come from the backend. Each maps to a catalog category via URL
+ * params; the shell never talks to the catalog MFE directly.
  */
-const CATEGORY_PILLS: Array<{ label: string; category: string }> = [
-  { label: 'Groceries', category: 'Daily Essentials' },
-  { label: 'Premium Fruits', category: 'Daily Essentials' },
-  { label: 'Home & Kitchen', category: 'all' },
-  { label: 'Fashion', category: 'all' },
-  { label: 'Electronics', category: 'Smartphones' },
-  { label: 'Beauty', category: 'all' },
-  { label: 'Home Improvement', category: 'all' },
-  { label: 'Sports, Toys & Luggage', category: 'all' },
-];
+function useCategoryPills(): Array<{ slug: string; name: string }> {
+  const [categories, setCategories] = useState<Array<{ slug: string; name: string }>>([]);
+
+  useEffect(() => {
+    catalogApi.categories().then(setCategories, () => setCategories([]));
+  }, []);
+
+  return categories;
+}
+
+/** Unread notifications for the header badge, re-read when the session changes or an order is placed. */
+function useUnreadCount(signedIn: boolean): number {
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!signedIn) {
+      setUnread(0);
+      return undefined;
+    }
+    const load = () => {
+      notificationsApi.unreadCount().then((counts) => setUnread(counts.unread ?? 0), () => undefined);
+    };
+    load();
+    return eventBus.on('order:placed', load);
+  }, [signedIn]);
+
+  return unread;
+}
 
 const FOOTER_CATEGORIES = [
   'Staples',
@@ -59,16 +77,16 @@ const FOOTER_SERVICES = [
 ];
 
 /**
- * Live cart badge count. The cart is shared state (cart-storage in
- * @ecom/utils); the shell hydrates the count from storage and stays in sync
- * via `cart:changed` broadcasts — same pattern as useSession. `cart:item-added`
- * only drives the pop animation.
+ * Live cart badge count. The shell hydrates the count from cart-storage, asks the backend once for a
+ * signed-in customer (the cart may have changed on another device), and stays in sync via
+ * `cart:changed` broadcasts, the same pattern as useSession. `cart:item-added` only drives the pop animation.
  */
 function useCartCount(): { count: number; bumped: boolean } {
   const [count, setCount] = useState(() => getCartCount());
   const [bumped, setBumped] = useState(false);
 
   useEffect(() => {
+    void refreshCart().catch(() => undefined);
     const offChanged = eventBus.on('cart:changed', ({ count: next }) => {
       setCount(next);
     });
@@ -159,6 +177,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const { count: cartCount, bumped } = useCartCount();
+  const categoryPills = useCategoryPills();
+  const unread = useUnreadCount(user !== null);
   const scrolled = useScrolled();
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
@@ -255,6 +275,20 @@ export function Layout({ children }: { children: ReactNode }) {
               <UserIcon className="h-5 w-5 text-brand-500 transition-transform duration-200 group-hover:scale-110" />
               {user ? user.name : 'Sign Up/Sign In'}
             </Link>
+            {user ? (
+              <Link
+                to="/account/notifications"
+                aria-label={`${unread} unread notifications`}
+                className="group relative flex items-center transition-colors hover:text-brand-600"
+              >
+                <MailIcon className="h-5 w-5 text-brand-500 transition-transform duration-200 group-hover:scale-110" />
+                {unread > 0 ? (
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-bold leading-none text-white">
+                    {unread}
+                  </span>
+                ) : null}
+              </Link>
+            ) : null}
             <span className="h-5 w-px bg-slate-200" aria-hidden />
             <Link
               to="/orders"
@@ -315,13 +349,13 @@ export function Layout({ children }: { children: ReactNode }) {
               ref={categoryScrollRef}
               className="no-scrollbar flex items-center gap-3 overflow-x-auto scroll-smooth sm:px-11"
             >
-              {CATEGORY_PILLS.map((pill) => (
+              {categoryPills.map((pill) => (
                 <Link
-                  key={pill.label}
-                  to={`/catalog?category=${encodeURIComponent(pill.category)}`}
+                  key={pill.slug}
+                  to={`/catalog?category=${encodeURIComponent(pill.slug)}`}
                   className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface-sunken px-4 py-2 text-sm text-slate-700 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-brand-500 hover:text-white hover:shadow-md active:translate-y-0"
                 >
-                  {pill.label}
+                  {pill.name}
                   <ChevronDownIcon className="h-3.5 w-3.5" />
                 </Link>
               ))}

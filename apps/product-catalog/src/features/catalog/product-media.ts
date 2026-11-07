@@ -11,12 +11,7 @@ const categoryEmoji: Record<string, string> = {
   Beauty: '💄',
 };
 
-const productEmoji: Record<string, string> = {
-  'p-7': '🍓',
-  'p-8': '🥭',
-};
-
 /** Placeholder product visual until real imagery lands. */
 export function productEmojiFor(product: Product): string {
-  return productEmoji[product.id] ?? categoryEmoji[product.category] ?? '📦';
+  return categoryEmoji[product.category] ?? '📦';
 }
